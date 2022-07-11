@@ -1,0 +1,124 @@
+"Represents a schema"
+schema {
+  query: RootQueryType
+  mutation: RootMutationType
+  subscription: RootSubscriptionType
+}
+
+type TokenMetadataAttribute {
+  traitType: String
+  value: String
+  displayType: String
+}
+
+type RootSubscriptionType {
+  eip721Transfer: Transfer
+}
+
+enum ThumbnailSize {
+  ORIGINAL
+}
+
+"""
+The `Naive DateTime` scalar type represents a naive date and time without
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string.
+"""
+scalar NaiveDateTime
+
+input TransfersFilter {
+  contractAddress: String
+}
+
+type Address {
+  address: String!
+  reverseProfile: Profile
+  profile: Profile
+  tokens(limit: Int, filter: AddressTokensFilter): [TokenMetadata]
+}
+
+type TokenTransfer {
+  id: Int
+  hash: String
+  token: String
+  from: Address
+  to: Address
+  fromAddress: String
+  toAddress: String
+  toAddressDisplay: String
+  erc721Metadata: TokenMetadata
+  blockTimestamp: NaiveDateTime
+}
+
+input TokensFilter {
+  contractAddress: String
+}
+
+type RootQueryType {
+  ping: String
+  feed(addresses: [String!]!): [TokenTransfer!]!
+  token(contract: String!, tokenId: String, id: Int): TokenMetadata!
+  tokens(limit: Int, cursor: String, filter: TokensFilter!): TokensPage
+  tokenTransfers(
+    limit: Int
+    cursor: String
+    filter: TransfersFilter!
+  ): TokenTransfersPage
+  address(name: String!): Address!
+}
+
+input AddressTokensFilter {
+  filterSuspectedScams: Boolean
+}
+
+type Transfer {
+  from: String
+  to: String
+  token: TokenMetadata
+}
+
+type Profile {
+  name: String!
+  avatar: String
+  email: String
+  text(key: String!): String
+}
+
+type TokenMetadata {
+  id: Int
+  contractAddress: String
+  tokenId: String
+  name: String
+  displayName: String
+  description: String
+  originalImageUrl: String
+  imageUrl: String
+  thumbnailUrl(size: ThumbnailSize): String
+  type: String
+  ownerAddress: Address
+  mintedAt: NaiveDateTime
+  attributes: [TokenMetadataAttribute!]
+}
+
+type RootMutationType {
+  tokenMetadataRefresh(
+    contract: String!
+    tokenId: String
+    id: Int
+  ): TokenMetadata
+  tokenMetadataRefreshCollection(
+    contract: String!
+    key: String!
+    emptyOnly: Boolean
+  ): Boolean
+}
+
+type TokensPage {
+  tokens: [TokenMetadata!]
+  nextCursor: String
+}
+
+type TokenTransfersPage {
+  tokenTransfers: [TokenTransfer!]
+  nextCursor: String
+}
