@@ -4,3 +4,5 @@ generates:
   ./src/types.ts:
     plugins:
       - typescript
+      - typescript-graphql-request
+      - typescript-operations
