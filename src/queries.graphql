@@ -1,0 +1,59 @@
+query address(
+  $name: String!
+  $includeGlobalKeys: Boolean = false
+  $includeCommonServiceKeys: Boolean = false
+) {
+  address(name: $name) {
+    address
+    # TODO - experiment with directives
+    profile {
+      ...GlobalKeys @include(if: $includeGlobalKeys)
+      ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+    }
+    reverseProfile {
+      ...GlobalKeys @include(if: $includeGlobalKeys)
+      ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+    }
+    tokens {
+      attributes {
+        displayType
+        traitType
+        value
+      }
+      # ownerAddress {
+      #   ...ProfileInfo @include(if: $includeProfileInfo)
+      # }
+      contractAddress
+      description
+      displayName
+      id
+      imageUrl
+      mintedAt
+      name
+      originalImageUrl
+      thumbnailUrl
+    }
+  }
+}
+
+fragment GlobalKeys on Profile {
+  avatar: text(key: "avatar")
+  description: text(key: "description")
+  display: text(key: "display")
+  email: text(key: "email")
+  keywords: text(key: "keywords")
+  mail: text(key: "mail")
+  notice: text(key: "notice")
+  location: text(key: "location")
+  phone: text(key: "phone")
+  url: text(key: "url")
+}
+
+fragment CommonServiceKeys on Profile {
+  github: text(key: "com.github")
+  peepeth: text(key: "com.peepeth")
+  linkedin: text(key: "com.linkedin")
+  twitter: text(key: "com.twitter")
+  keybase: text(key: "io.keybase")
+  telegram: text(key: "org.telegram")
+}
