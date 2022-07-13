@@ -1,9 +1,18 @@
+import { GraphQLClient } from "graphql-request";
 import { getSdk } from "./sdk";
 
 async function main() {
-  const result = await getSdk(null as any).address({
+  const client = new GraphQLClient("https://api.basement.dev/graphiql");
+  const sdk = getSdk(client);
+  const { address } = await sdk.address({
     name: "vitalik.eth",
-    includeGlobalKeys: false,
+    includeReverseProfile: true,
+    includeTokens: true,
+    filterSuspectedScams: true,
+    includeProfile: true,
+    tokensLimit: 10,
   });
-  result.address.profile;
+  console.log(address);
 }
+
+main().then();

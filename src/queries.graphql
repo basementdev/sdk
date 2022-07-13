@@ -4,7 +4,7 @@ query address(
   $includeProfile: Boolean = false
   $includeReverseProfile: Boolean = false
   $filterSuspectedScams: Boolean = false
-  $includeTokenInfo: Boolean = false
+  $includeTokens: Boolean = false
 ) {
   address(name: $name) {
     address
@@ -19,7 +19,7 @@ query address(
     tokens(
       limit: $tokensLimit
       filter: { filterSuspectedScams: $filterSuspectedScams }
-    ) @include(if: $includeTokenInfo) {
+    ) @include(if: $includeTokens) {
       ...TokenInfo
     }
   }

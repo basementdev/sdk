@@ -27,11 +27,87 @@ export type Scalars = {
   NaiveDateTime: any;
 };
 
-export type TokenMetadataAttribute = {
-  __typename?: "TokenMetadataAttribute";
-  traitType?: Maybe<Scalars["String"]>;
-  value?: Maybe<Scalars["String"]>;
-  displayType?: Maybe<Scalars["String"]>;
+export type Address = {
+  __typename?: "Address";
+  address: Scalars["String"];
+  profile?: Maybe<Profile>;
+  reverseProfile?: Maybe<Profile>;
+  tokens?: Maybe<Array<Maybe<TokenMetadata>>>;
+};
+
+export type AddressTokensArgs = {
+  filter?: InputMaybe<AddressTokensFilter>;
+  limit?: InputMaybe<Scalars["Int"]>;
+};
+
+export type AddressTokensFilter = {
+  filterSuspectedScams?: InputMaybe<Scalars["Boolean"]>;
+};
+
+export type Profile = {
+  __typename?: "Profile";
+  avatar?: Maybe<Scalars["String"]>;
+  email?: Maybe<Scalars["String"]>;
+  name: Scalars["String"];
+  text?: Maybe<Scalars["String"]>;
+};
+
+export type ProfileTextArgs = {
+  key: Scalars["String"];
+};
+
+export type RootMutationType = {
+  __typename?: "RootMutationType";
+  tokenMetadataRefresh?: Maybe<TokenMetadata>;
+  tokenMetadataRefreshCollection?: Maybe<Scalars["Boolean"]>;
+};
+
+export type RootMutationTypeTokenMetadataRefreshArgs = {
+  contract: Scalars["String"];
+  id?: InputMaybe<Scalars["Int"]>;
+  tokenId?: InputMaybe<Scalars["String"]>;
+};
+
+export type RootMutationTypeTokenMetadataRefreshCollectionArgs = {
+  contract: Scalars["String"];
+  emptyOnly?: InputMaybe<Scalars["Boolean"]>;
+  key: Scalars["String"];
+};
+
+export type RootQueryType = {
+  __typename?: "RootQueryType";
+  address: Address;
+  feed: Array<TokenTransfer>;
+  ping?: Maybe<Scalars["String"]>;
+  token: TokenMetadata;
+  tokenTransfers?: Maybe<TokenTransfersPage>;
+  tokens?: Maybe<TokensPage>;
+};
+
+export type RootQueryTypeAddressArgs = {
+  name: Scalars["String"];
+};
+
+export type RootQueryTypeFeedArgs = {
+  addresses: Array<Scalars["String"]>;
+};
+
+export type RootQueryTypeTokenArgs = {
+  contract: Scalars["String"];
+  id?: InputMaybe<Scalars["Int"]>;
+  tokenId?: InputMaybe<Scalars["String"]>;
+};
+
+export type RootQueryTypeTokenTransfersArgs = {
+  cursor?: InputMaybe<Scalars["String"]>;
+  filter: TransfersFilter;
+  limit?: InputMaybe<Scalars["Int"]>;
+};
+
+export type RootQueryTypeTokensArgs = {
+  cursor?: InputMaybe<Scalars["String"]>;
+  filter: TokensFilter;
+  limit?: InputMaybe<Scalars["Int"]>;
 };
 
 export type RootSubscriptionType = {
@@ -43,79 +119,62 @@ export enum ThumbnailSize {
   Original = "ORIGINAL",
 }
 
-export type TransfersFilter = {
-  contractAddress?: InputMaybe<Scalars["String"]>;
+export type TokenMetadata = {
+  __typename?: "TokenMetadata";
+  attributes?: Maybe<Array<TokenMetadataAttribute>>;
+  contractAddress?: Maybe<Scalars["String"]>;
+  description?: Maybe<Scalars["String"]>;
+  displayName?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["Int"]>;
+  imageUrl?: Maybe<Scalars["String"]>;
+  mintedAt?: Maybe<Scalars["NaiveDateTime"]>;
+  name?: Maybe<Scalars["String"]>;
+  originalImageUrl?: Maybe<Scalars["String"]>;
+  ownerAddress?: Maybe<Address>;
+  thumbnailUrl?: Maybe<Scalars["String"]>;
+  tokenId?: Maybe<Scalars["String"]>;
+  type?: Maybe<Scalars["String"]>;
 };
 
-export type Address = {
-  __typename?: "Address";
-  address: Scalars["String"];
-  reverseProfile?: Maybe<Profile>;
-  profile?: Maybe<Profile>;
-  tokens?: Maybe<Array<Maybe<TokenMetadata>>>;
+export type TokenMetadataThumbnailUrlArgs = {
+  size?: InputMaybe<ThumbnailSize>;
 };
 
-export type AddressTokensArgs = {
-  limit?: InputMaybe<Scalars["Int"]>;
-  filter?: InputMaybe<AddressTokensFilter>;
+export type TokenMetadataAttribute = {
+  __typename?: "TokenMetadataAttribute";
+  displayType?: Maybe<Scalars["String"]>;
+  traitType?: Maybe<Scalars["String"]>;
+  value?: Maybe<Scalars["String"]>;
 };
 
 export type TokenTransfer = {
   __typename?: "TokenTransfer";
-  id?: Maybe<Scalars["Int"]>;
-  hash?: Maybe<Scalars["String"]>;
-  token?: Maybe<Scalars["String"]>;
+  blockTimestamp?: Maybe<Scalars["NaiveDateTime"]>;
+  erc721Metadata?: Maybe<TokenMetadata>;
   from?: Maybe<Address>;
-  to?: Maybe<Address>;
   fromAddress?: Maybe<Scalars["String"]>;
+  hash?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["Int"]>;
+  to?: Maybe<Address>;
   toAddress?: Maybe<Scalars["String"]>;
   toAddressDisplay?: Maybe<Scalars["String"]>;
-  erc721Metadata?: Maybe<TokenMetadata>;
-  blockTimestamp?: Maybe<Scalars["NaiveDateTime"]>;
+  token?: Maybe<Scalars["String"]>;
+};
+
+export type TokenTransfersPage = {
+  __typename?: "TokenTransfersPage";
+  nextCursor?: Maybe<Scalars["String"]>;
+  tokenTransfers?: Maybe<Array<TokenTransfer>>;
 };
 
 export type TokensFilter = {
   contractAddress?: InputMaybe<Scalars["String"]>;
 };
 
-export type RootQueryType = {
-  __typename?: "RootQueryType";
-  ping?: Maybe<Scalars["String"]>;
-  feed: Array<TokenTransfer>;
-  token: TokenMetadata;
-  tokens?: Maybe<TokensPage>;
-  tokenTransfers?: Maybe<TokenTransfersPage>;
-  address: Address;
-};
-
-export type RootQueryTypeFeedArgs = {
-  addresses: Array<Scalars["String"]>;
-};
-
-export type RootQueryTypeTokenArgs = {
-  contract: Scalars["String"];
-  tokenId?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["Int"]>;
-};
-
-export type RootQueryTypeTokensArgs = {
-  limit?: InputMaybe<Scalars["Int"]>;
-  cursor?: InputMaybe<Scalars["String"]>;
-  filter: TokensFilter;
-};
-
-export type RootQueryTypeTokenTransfersArgs = {
-  limit?: InputMaybe<Scalars["Int"]>;
-  cursor?: InputMaybe<Scalars["String"]>;
-  filter: TransfersFilter;
-};
-
-export type RootQueryTypeAddressArgs = {
-  name: Scalars["String"];
-};
-
-export type AddressTokensFilter = {
-  filterSuspectedScams?: InputMaybe<Scalars["Boolean"]>;
+export type TokensPage = {
+  __typename?: "TokensPage";
+  nextCursor?: Maybe<Scalars["String"]>;
+  tokens?: Maybe<Array<TokenMetadata>>;
 };
 
 export type Transfer = {
@@ -125,69 +184,30 @@ export type Transfer = {
   token?: Maybe<TokenMetadata>;
 };
 
-export type Profile = {
-  __typename?: "Profile";
-  name: Scalars["String"];
-  avatar?: Maybe<Scalars["String"]>;
-  email?: Maybe<Scalars["String"]>;
-  text?: Maybe<Scalars["String"]>;
+export type TransfersFilter = {
+  contractAddress?: InputMaybe<Scalars["String"]>;
 };
 
-export type ProfileTextArgs = {
-  key: Scalars["String"];
-};
-
-export type TokenMetadata = {
-  __typename?: "TokenMetadata";
-  id?: Maybe<Scalars["Int"]>;
-  contractAddress?: Maybe<Scalars["String"]>;
-  tokenId?: Maybe<Scalars["String"]>;
-  name?: Maybe<Scalars["String"]>;
-  displayName?: Maybe<Scalars["String"]>;
-  description?: Maybe<Scalars["String"]>;
-  originalImageUrl?: Maybe<Scalars["String"]>;
-  imageUrl?: Maybe<Scalars["String"]>;
-  thumbnailUrl?: Maybe<Scalars["String"]>;
-  type?: Maybe<Scalars["String"]>;
-  ownerAddress?: Maybe<Address>;
-  mintedAt?: Maybe<Scalars["NaiveDateTime"]>;
-  attributes?: Maybe<Array<TokenMetadataAttribute>>;
-};
-
-export type TokenMetadataThumbnailUrlArgs = {
-  size?: InputMaybe<ThumbnailSize>;
-};
-
-export type RootMutationType = {
-  __typename?: "RootMutationType";
-  tokenMetadataRefresh?: Maybe<TokenMetadata>;
-  tokenMetadataRefreshCollection?: Maybe<Scalars["Boolean"]>;
-};
-
-export type RootMutationTypeTokenMetadataRefreshArgs = {
-  contract: Scalars["String"];
-  tokenId?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["Int"]>;
-};
-
-export type RootMutationTypeTokenMetadataRefreshCollectionArgs = {
-  contract: Scalars["String"];
-  key: Scalars["String"];
-  emptyOnly?: InputMaybe<Scalars["Boolean"]>;
-};
-
-export type TokensPage = {
-  __typename?: "TokensPage";
-  tokens?: Maybe<Array<TokenMetadata>>;
-  nextCursor?: Maybe<Scalars["String"]>;
-};
-
-export type TokenTransfersPage = {
-  __typename?: "TokenTransfersPage";
-  tokenTransfers?: Maybe<Array<TokenTransfer>>;
-  nextCursor?: Maybe<Scalars["String"]>;
-};
-
+export const TokenInfoFragmentDoc = gql`
+  fragment TokenInfo on TokenMetadata {
+    attributes {
+      displayType
+      traitType
+      value
+    }
+    contractAddress
+    description
+    displayName
+    id
+    imageUrl
+    mintedAt
+    name
+    originalImageUrl
+    thumbnailUrl
+    tokenId
+    type
+  }
+`;
 export const GlobalKeysFragmentDoc = gql`
   fragment GlobalKeys on Profile {
     avatar: text(key: "avatar")
@@ -215,39 +235,33 @@ export const CommonServiceKeysFragmentDoc = gql`
 export const AddressDocument = gql`
   query address(
     $name: String!
-    $includeGlobalKeys: Boolean = false
-    $includeCommonServiceKeys: Boolean = false
+    $tokensLimit: Int = 10
+    $includeProfile: Boolean = false
+    $includeReverseProfile: Boolean = false
+    $filterSuspectedScams: Boolean = false
+    $includeTokens: Boolean = false
   ) {
     address(name: $name) {
       address
-      profile {
-        ...GlobalKeys @include(if: $includeGlobalKeys)
-        ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+      profile @include(if: $includeProfile) {
+        ...GlobalKeys
+        ...CommonServiceKeys
       }
-      reverseProfile {
-        ...GlobalKeys @include(if: $includeGlobalKeys)
-        ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+      reverseProfile @include(if: $includeReverseProfile) {
+        ...GlobalKeys
+        ...CommonServiceKeys
       }
-      tokens {
-        attributes {
-          displayType
-          traitType
-          value
-        }
-        contractAddress
-        description
-        displayName
-        id
-        imageUrl
-        mintedAt
-        name
-        originalImageUrl
-        thumbnailUrl
+      tokens(
+        limit: $tokensLimit
+        filter: { filterSuspectedScams: $filterSuspectedScams }
+      ) @include(if: $includeTokens) {
+        ...TokenInfo
       }
     }
   }
   ${GlobalKeysFragmentDoc}
   ${CommonServiceKeysFragmentDoc}
+  ${TokenInfoFragmentDoc}
 `;
 
 export type SdkFunctionWrapper = <T>(
@@ -286,8 +300,11 @@ export function getSdk(
 export type Sdk = ReturnType<typeof getSdk>;
 export type AddressQueryVariables = Exact<{
   name: Scalars["String"];
-  includeGlobalKeys?: InputMaybe<Scalars["Boolean"]>;
-  includeCommonServiceKeys?: InputMaybe<Scalars["Boolean"]>;
+  tokensLimit?: InputMaybe<Scalars["Int"]>;
+  includeProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  filterSuspectedScams?: InputMaybe<Scalars["Boolean"]>;
+  includeTokens?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type AddressQuery = {
@@ -344,6 +361,8 @@ export type AddressQuery = {
       name?: string | null;
       originalImageUrl?: string | null;
       thumbnailUrl?: string | null;
+      tokenId?: string | null;
+      type?: string | null;
       attributes?: Array<{
         __typename?: "TokenMetadataAttribute";
         displayType?: string | null;
@@ -352,6 +371,27 @@ export type AddressQuery = {
       }> | null;
     } | null> | null;
   };
+};
+
+export type TokenInfoFragment = {
+  __typename?: "TokenMetadata";
+  contractAddress?: string | null;
+  description?: string | null;
+  displayName?: string | null;
+  id?: number | null;
+  imageUrl?: string | null;
+  mintedAt?: any | null;
+  name?: string | null;
+  originalImageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  tokenId?: string | null;
+  type?: string | null;
+  attributes?: Array<{
+    __typename?: "TokenMetadataAttribute";
+    displayType?: string | null;
+    traitType?: string | null;
+    value?: string | null;
+  }> | null;
 };
 
 export type GlobalKeysFragment = {
