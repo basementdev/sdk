@@ -1,39 +1,47 @@
 query address(
   $name: String!
-  $includeGlobalKeys: Boolean = false
-  $includeCommonServiceKeys: Boolean = false
+  $tokensLimit: Int = 10
+  $includeProfile: Boolean = false
+  $includeReverseProfile: Boolean = false
+  $filterSuspectedScams: Boolean = false
+  $includeTokenInfo: Boolean = false
 ) {
   address(name: $name) {
     address
-    # TODO - experiment with directives
-    profile {
-      ...GlobalKeys @include(if: $includeGlobalKeys)
-      ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+    profile @include(if: $includeProfile) {
+      ...GlobalKeys
+      ...CommonServiceKeys
     }
-    reverseProfile {
-      ...GlobalKeys @include(if: $includeGlobalKeys)
-      ...CommonServiceKeys @include(if: $includeCommonServiceKeys)
+    reverseProfile @include(if: $includeReverseProfile) {
+      ...GlobalKeys
+      ...CommonServiceKeys
     }
-    tokens {
-      attributes {
-        displayType
-        traitType
-        value
-      }
-      # ownerAddress {
-      #   ...ProfileInfo @include(if: $includeProfileInfo)
-      # }
-      contractAddress
-      description
-      displayName
-      id
-      imageUrl
-      mintedAt
-      name
-      originalImageUrl
-      thumbnailUrl
+    tokens(
+      limit: $tokensLimit
+      filter: { filterSuspectedScams: $filterSuspectedScams }
+    ) @include(if: $includeTokenInfo) {
+      ...TokenInfo
     }
   }
+}
+
+fragment TokenInfo on TokenMetadata {
+  attributes {
+    displayType
+    traitType
+    value
+  }
+  contractAddress
+  description
+  displayName
+  id
+  imageUrl
+  mintedAt
+  name
+  originalImageUrl
+  thumbnailUrl
+  tokenId
+  type
 }
 
 fragment GlobalKeys on Profile {
