@@ -25,6 +25,34 @@ query address(
   }
 }
 
+query token(
+  $contract: String!
+  $id: Int
+  $tokenId: String
+  $includeOwnerInfo: Boolean = false
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+) {
+  token(contract: $contract, id: $id, tokenId: $tokenId) {
+    ...TokenInfo
+    ...TokenOwnerInfo @include(if: $includeOwnerInfo)
+  }
+}
+
+fragment TokenOwnerInfo on TokenMetadata {
+  ownerAddress {
+    address
+    profile @include(if: $includeOwnerProfile) {
+      ...GlobalKeys
+      ...CommonServiceKeys
+    }
+    reverseProfile @include(if: $includeOwnerReverseProfile) {
+      ...GlobalKeys
+      ...CommonServiceKeys
+    }
+  }
+}
+
 fragment TokenInfo on TokenMetadata {
   attributes {
     displayType
