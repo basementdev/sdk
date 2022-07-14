@@ -39,6 +39,23 @@ query token(
   }
 }
 
+query tokens(
+  $filter: TokensFilter!
+  $limit: Int = 10
+  $cursor: String
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+  $includeOwnerInfo: Boolean = false
+) {
+  tokens(filter: $filter, limit: $limit, cursor: $cursor) {
+    nextCursor
+    tokens {
+      ...TokenInfo
+      ...TokenOwnerInfo @include(if: $includeOwnerInfo)
+    }
+  }
+}
+
 fragment TokenOwnerInfo on TokenMetadata {
   ownerAddress {
     address
