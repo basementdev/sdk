@@ -297,6 +297,84 @@ export const TokenDocument = gql`
   ${TokenInfoFragmentDoc}
   ${TokenOwnerInfoFragmentDoc}
 `;
+export const TokensDocument = gql`
+  query tokens(
+    $filter: TokensFilter!
+    $limit: Int = 10
+    $cursor: String
+    $includeOwnerProfile: Boolean = false
+    $includeOwnerReverseProfile: Boolean = false
+    $includeOwnerInfo: Boolean = false
+  ) {
+    tokens(filter: $filter, limit: $limit, cursor: $cursor) {
+      nextCursor
+      tokens {
+        ...TokenInfo
+        ...TokenOwnerInfo @include(if: $includeOwnerInfo)
+      }
+    }
+  }
+  ${TokenInfoFragmentDoc}
+  ${TokenOwnerInfoFragmentDoc}
+`;
+export const TokenTransfersDocument = gql`
+  query tokenTransfers(
+    $filter: TransfersFilter!
+    $limit: Int = 10
+    $cursor: String
+    $includeERC721Metadata: Boolean = false
+    $includeFromProfile: Boolean = false
+    $includeFromReverseProfile: Boolean = false
+    $includeToProfile: Boolean = false
+    $includeToReverseProfile: Boolean = false
+    $includeFromTokensInfo: Boolean = false
+    $includeToTokensInfo: Boolean = false
+  ) {
+    tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
+      nextCursor
+      tokenTransfers {
+        blockTimestamp
+        hash
+        id
+        token
+        erc721Metadata @include(if: $includeERC721Metadata) {
+          ...TokenInfo
+        }
+        from {
+          address
+          profile @include(if: $includeFromProfile) {
+            ...CommonServiceKeys
+            ...GlobalKeys
+          }
+          reverseProfile @include(if: $includeFromReverseProfile) {
+            ...CommonServiceKeys
+            ...GlobalKeys
+          }
+          tokens @include(if: $includeFromTokensInfo) {
+            ...TokenInfo
+          }
+        }
+        to {
+          address
+          profile @include(if: $includeToProfile) {
+            ...CommonServiceKeys
+            ...GlobalKeys
+          }
+          reverseProfile @include(if: $includeToReverseProfile) {
+            ...CommonServiceKeys
+            ...GlobalKeys
+          }
+          tokens @include(if: $includeToTokensInfo) {
+            ...TokenInfo
+          }
+        }
+      }
+    }
+  }
+  ${TokenInfoFragmentDoc}
+  ${CommonServiceKeysFragmentDoc}
+  ${GlobalKeysFragmentDoc}
+`;
 
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
@@ -340,6 +418,35 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "token",
+        "query"
+      );
+    },
+    tokens(
+      variables: TokensQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<TokensQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TokensQuery>(TokensDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "tokens",
+        "query"
+      );
+    },
+    tokenTransfers(
+      variables: TokenTransfersQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<TokenTransfersQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TokenTransfersQuery>(
+            TokenTransfersDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "tokenTransfers",
         "query"
       );
     },
@@ -494,6 +601,257 @@ export type TokenQuery = {
       } | null;
     } | null;
   };
+};
+
+export type TokensQueryVariables = Exact<{
+  filter: TokensFilter;
+  limit?: InputMaybe<Scalars["Int"]>;
+  cursor?: InputMaybe<Scalars["String"]>;
+  includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type TokensQuery = {
+  __typename?: "RootQueryType";
+  tokens?: {
+    __typename?: "TokensPage";
+    nextCursor?: string | null;
+    tokens?: Array<{
+      __typename?: "TokenMetadata";
+      contractAddress?: string | null;
+      description?: string | null;
+      displayName?: string | null;
+      id?: number | null;
+      imageUrl?: string | null;
+      mintedAt?: any | null;
+      name?: string | null;
+      originalImageUrl?: string | null;
+      thumbnailUrl?: string | null;
+      tokenId?: string | null;
+      type?: string | null;
+      attributes?: Array<{
+        __typename?: "TokenMetadataAttribute";
+        displayType?: string | null;
+        traitType?: string | null;
+        value?: string | null;
+      }> | null;
+      ownerAddress?: {
+        __typename?: "Address";
+        address: string;
+        profile?: {
+          __typename?: "Profile";
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+        } | null;
+        reverseProfile?: {
+          __typename?: "Profile";
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+        } | null;
+      } | null;
+    }> | null;
+  } | null;
+};
+
+export type TokenTransfersQueryVariables = Exact<{
+  filter: TransfersFilter;
+  limit?: InputMaybe<Scalars["Int"]>;
+  cursor?: InputMaybe<Scalars["String"]>;
+  includeERC721Metadata?: InputMaybe<Scalars["Boolean"]>;
+  includeFromProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeFromReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeToProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeToReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeFromTokensInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeToTokensInfo?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type TokenTransfersQuery = {
+  __typename?: "RootQueryType";
+  tokenTransfers?: {
+    __typename?: "TokenTransfersPage";
+    nextCursor?: string | null;
+    tokenTransfers?: Array<{
+      __typename?: "TokenTransfer";
+      blockTimestamp?: any | null;
+      hash?: string | null;
+      id?: number | null;
+      token?: string | null;
+      erc721Metadata?: {
+        __typename?: "TokenMetadata";
+        contractAddress?: string | null;
+        description?: string | null;
+        displayName?: string | null;
+        id?: number | null;
+        imageUrl?: string | null;
+        mintedAt?: any | null;
+        name?: string | null;
+        originalImageUrl?: string | null;
+        thumbnailUrl?: string | null;
+        tokenId?: string | null;
+        type?: string | null;
+        attributes?: Array<{
+          __typename?: "TokenMetadataAttribute";
+          displayType?: string | null;
+          traitType?: string | null;
+          value?: string | null;
+        }> | null;
+      } | null;
+      from?: {
+        __typename?: "Address";
+        address: string;
+        profile?: {
+          __typename?: "Profile";
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+        } | null;
+        reverseProfile?: {
+          __typename?: "Profile";
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+        } | null;
+        tokens?: Array<{
+          __typename?: "TokenMetadata";
+          contractAddress?: string | null;
+          description?: string | null;
+          displayName?: string | null;
+          id?: number | null;
+          imageUrl?: string | null;
+          mintedAt?: any | null;
+          name?: string | null;
+          originalImageUrl?: string | null;
+          thumbnailUrl?: string | null;
+          tokenId?: string | null;
+          type?: string | null;
+          attributes?: Array<{
+            __typename?: "TokenMetadataAttribute";
+            displayType?: string | null;
+            traitType?: string | null;
+            value?: string | null;
+          }> | null;
+        } | null> | null;
+      } | null;
+      to?: {
+        __typename?: "Address";
+        address: string;
+        profile?: {
+          __typename?: "Profile";
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+        } | null;
+        reverseProfile?: {
+          __typename?: "Profile";
+          github?: string | null;
+          peepeth?: string | null;
+          linkedin?: string | null;
+          twitter?: string | null;
+          keybase?: string | null;
+          telegram?: string | null;
+          avatar?: string | null;
+          description?: string | null;
+          display?: string | null;
+          email?: string | null;
+          keywords?: string | null;
+          mail?: string | null;
+          notice?: string | null;
+          location?: string | null;
+          phone?: string | null;
+          url?: string | null;
+        } | null;
+        tokens?: Array<{
+          __typename?: "TokenMetadata";
+          contractAddress?: string | null;
+          description?: string | null;
+          displayName?: string | null;
+          id?: number | null;
+          imageUrl?: string | null;
+          mintedAt?: any | null;
+          name?: string | null;
+          originalImageUrl?: string | null;
+          thumbnailUrl?: string | null;
+          tokenId?: string | null;
+          type?: string | null;
+          attributes?: Array<{
+            __typename?: "TokenMetadataAttribute";
+            displayType?: string | null;
+            traitType?: string | null;
+            value?: string | null;
+          }> | null;
+        } | null> | null;
+      } | null;
+    }> | null;
+  } | null;
 };
 
 export type TokenOwnerInfoFragment = {
