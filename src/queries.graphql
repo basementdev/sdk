@@ -56,6 +56,60 @@ query tokens(
   }
 }
 
+query tokenTransfers(
+  $filter: TransfersFilter!
+  $limit: Int = 10
+  $cursor: String
+  $includeERC721Metadata: Boolean = false
+  $includeFromProfile: Boolean = false
+  $includeFromReverseProfile: Boolean = false
+  $includeToProfile: Boolean = false
+  $includeToReverseProfile: Boolean = false
+  $includeFromTokensInfo: Boolean = false
+  $includeToTokensInfo: Boolean = false
+) {
+  tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
+    nextCursor
+    tokenTransfers {
+      blockTimestamp
+      hash
+      id
+      token
+      erc721Metadata @include(if: $includeERC721Metadata) {
+        ...TokenInfo
+      }
+      from {
+        address
+        profile @include(if: $includeFromProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+        reverseProfile @include(if: $includeFromReverseProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+        tokens @include(if: $includeFromTokensInfo) {
+          ...TokenInfo
+        }
+      }
+      to {
+        address
+        profile @include(if: $includeToProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+        reverseProfile @include(if: $includeToReverseProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+        tokens @include(if: $includeToTokensInfo) {
+          ...TokenInfo
+        }
+      }
+    }
+  }
+}
+
 fragment TokenOwnerInfo on TokenMetadata {
   ownerAddress {
     address
