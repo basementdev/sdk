@@ -7,6 +7,10 @@ import {
   TokenMetadataRefreshMutationVariables,
   TokenQuery,
   TokenQueryVariables,
+  TokensQuery,
+  TokensQueryVariables,
+  TokenTransfersQuery,
+  TokenTransfersQueryVariables,
 } from "./sdk";
 
 const DEFAULT_ENDPOINT = "https://api.basement.dev/graphiql";
@@ -54,6 +58,7 @@ export class SDK {
    * @param queryObj.tokenId token ID
    * @param queryObj.includeOwnerInfo Whether to include the token owner's information in the response - defaults to `false`
    * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect -  defaults to `false`
+   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect - defaults to `false`
    */
   public async token({
     contract,
@@ -89,6 +94,74 @@ export class SDK {
       contract,
       id,
       tokenId,
+    });
+  }
+
+  /**
+   * Query tokens that satisfy the given filter(s)
+   * @param {TokensQueryVariables} queryObj query variables object
+   * @param queryObj.filter.contractAddress Filter tokens that satisfy the given contract address
+   * @param queryObj.includeOwnerInfo Whether to include the token owner's information in the response - defaults to `false`
+   * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect -  defaults to `false`
+   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect - defaults to `false`
+   * @param queryObj.limit Maximum number of tokens to return - defaults to `10`
+   * @param queryObj.cursor Cursor used for pagination. To go the next page, provide the given cursor from the response
+   */
+  public async tokens({
+    filter,
+    cursor,
+    includeOwnerInfo,
+    includeOwnerProfile,
+    includeOwnerReverseProfile,
+    limit,
+  }: TokensQueryVariables): Promise<TokensQuery> {
+    return this.sdk.tokens({
+      filter,
+      cursor,
+      includeOwnerInfo,
+      includeOwnerProfile,
+      includeOwnerReverseProfile,
+      limit,
+    });
+  }
+
+  /**
+   * Query token transfers that satisfy the given filter(s)
+   * @param {TokenTransfersQueryVariables} queryObj query variables object
+   * @param queryObj.filter.contractAddress Filter tokens that satisfy the given contract address
+   * @param queryObj.limit Maximum number of token transfers to return - defaults to `10`
+   * @param queryObj.cursor Cursor used for pagination. To go the next page, provide the given cursor from the response
+   * @param queryObj.includeERC721Metadata Whether to include ERC721 metadata, like `tokenId`, `attributes`, `contractAddress`, etc - defaults to `false`
+   * @param queryObj.includeFromProfile Whether to include the `from` profile in the response. This option is not needed if you need to only retrieve the `from` address -  defaults to `false`
+   * @param queryObj.includeFromReverseProfile Whether to include the `from` ENS reverse resolution profile in the response - defaults to `false`
+   * @param queryObj.includeFromTokensInfo Whether to include `from` tokens information (This function returns a maximum of 10 tokens, if you need to get a more comprehensive response, use the `tokens` function) - defaults to `false`
+   * @param queryObj.includeToProfile Whether to include the `to` profile in the response. This option is not needed if you need to only retrieve the `to` address -  defaults to `false`
+   * @param queryObj.includeToReverseProfile Whether to include the `to` ENS reverse resolution profile in the response - defaults to `false`
+   * @param queryObj.includeToTokensInfo Whether to include `to` token information (This function returns a maximum of 10 tokens, if you need to get a more comprehensive response, use the `tokens` function) - defaults to `false`
+   */
+  public async tokensTransfers({
+    filter,
+    cursor,
+    includeERC721Metadata,
+    includeFromProfile,
+    includeFromReverseProfile,
+    includeFromTokensInfo,
+    includeToProfile,
+    includeToReverseProfile,
+    includeToTokensInfo,
+    limit,
+  }: TokenTransfersQueryVariables): Promise<TokenTransfersQuery> {
+    return this.sdk.tokenTransfers({
+      filter,
+      cursor,
+      includeERC721Metadata,
+      includeFromProfile,
+      includeFromReverseProfile,
+      includeFromTokensInfo,
+      includeToProfile,
+      includeToReverseProfile,
+      includeToTokensInfo,
+      limit,
     });
   }
 }
