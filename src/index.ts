@@ -38,7 +38,7 @@ export class SDK {
     includeProfile,
     includeReverseProfile,
     includeTokens,
-    tokensLimit,
+    tokensLimit = 10,
   }: AddressQueryVariables): Promise<AddressQuery> {
     return this.sdk.address({
       name,
@@ -56,22 +56,20 @@ export class SDK {
    * @param queryObj.contract contract hex-address
    * @param queryObj.id internal ID
    * @param queryObj.tokenId token ID
-   * @param queryObj.includeOwnerInfo Whether to include the token owner's information in the response - defaults to `false`
-   * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect -  defaults to `false`
-   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect - defaults to `false`
+   * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response -  defaults to `false`
+   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response - defaults to `false`
    */
   public async token({
     contract,
     id,
-    includeOwnerInfo,
     includeOwnerProfile,
     includeOwnerReverseProfile,
     tokenId,
-  }: TokenQueryVariables): Promise<TokenQuery> {
+  }: Omit<TokenQueryVariables, "includeOwnerInfo">): Promise<TokenQuery> {
     return this.sdk.token({
       contract,
       id,
-      includeOwnerInfo,
+      includeOwnerInfo: includeOwnerProfile || includeOwnerReverseProfile,
       includeOwnerProfile,
       includeOwnerReverseProfile,
       tokenId,
@@ -101,24 +99,22 @@ export class SDK {
    * Query tokens that satisfy the given filter(s)
    * @param {TokensQueryVariables} queryObj query variables object
    * @param queryObj.filter.contractAddress Filter tokens that satisfy the given contract address
-   * @param queryObj.includeOwnerInfo Whether to include the token owner's information in the response - defaults to `false`
-   * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect -  defaults to `false`
-   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response. `queryObj.includeOwnerInfo` must be set to `true` for this option to take effect - defaults to `false`
+   * @param queryObj.includeOwnerProfile Whether to include the owner's profile in the response -  defaults to `false`
+   * @param queryObj.includeOwnerReverseProfile Whether to include the owner's ENS reverse resolution profile in the response - defaults to `false`
    * @param queryObj.limit Maximum number of tokens to return - defaults to `10`
    * @param queryObj.cursor Cursor used for pagination. To go the next page, provide the given cursor from the response
    */
   public async tokens({
     filter,
     cursor,
-    includeOwnerInfo,
     includeOwnerProfile,
     includeOwnerReverseProfile,
-    limit,
-  }: TokensQueryVariables): Promise<TokensQuery> {
+    limit = 10,
+  }: Omit<TokensQueryVariables, "includeOwnerInfo">): Promise<TokensQuery> {
     return this.sdk.tokens({
       filter,
       cursor,
-      includeOwnerInfo,
+      includeOwnerInfo: includeOwnerProfile || includeOwnerReverseProfile,
       includeOwnerProfile,
       includeOwnerReverseProfile,
       limit,
@@ -139,7 +135,7 @@ export class SDK {
    * @param queryObj.includeToReverseProfile Whether to include the `to` ENS reverse resolution profile in the response - defaults to `false`
    * @param queryObj.includeToTokensInfo Whether to include `to` token information (This function returns a maximum of 10 tokens, if you need to get a more comprehensive response, use the `tokens` function) - defaults to `false`
    */
-  public async tokensTransfers({
+  public async tokenTransfers({
     filter,
     cursor,
     includeERC721Metadata,
