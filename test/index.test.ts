@@ -7,10 +7,14 @@ describe("Basement SDK", () => {
 
   test("token query", async () => {
     const { token } = await sdk.token({
-      includeOwnerProfile: true,
-      includeOwnerReverseProfile: true,
       contract: TOKEN_CONTRACT_ADDRESS,
       tokenId: TOKEN_ID,
+      include: {
+        owner: {
+          profile: true,
+          reverseProfile: true,
+        },
+      },
     });
 
     const keys = Object.keys(token.ownerAddress);
@@ -24,10 +28,11 @@ describe("Basement SDK", () => {
     const tokensLimit = 15;
     const { address } = await sdk.address({
       name: "test.eth",
-      includeProfile: true,
-      includeReverseProfile: true,
-      includeTokens: true,
-      tokensLimit,
+      include: {
+        profile: true,
+        reverseProfile: true,
+        tokens: { filterSuspectedScams: true, limit: 10 },
+      },
     });
 
     const keys = Object.keys(address);
@@ -51,11 +56,14 @@ describe("Basement SDK", () => {
     const tokensLimit = 5;
     const { tokens } = await sdk.tokens({
       filter: { contractAddress: TOKEN_CONTRACT_ADDRESS },
-      includeOwnerProfile: true,
-      includeOwnerReverseProfile: true,
       limit: tokensLimit,
+      include: {
+        owner: {
+          profile: true,
+          reverseProfile: true,
+        },
+      },
     });
-
     expect(tokens?.tokens?.length).toBeLessThanOrEqual(tokensLimit);
     const token = tokens?.tokens[0];
     const keys = Object.keys(token?.ownerAddress);
@@ -69,13 +77,19 @@ describe("Basement SDK", () => {
     const { tokenTransfers } = await sdk.tokenTransfers({
       filter: { contractAddress: TOKEN_CONTRACT_ADDRESS },
       limit: tokenTransfersLimit,
-      includeERC721Metadata: true,
-      includeFromProfile: true,
-      includeFromReverseProfile: true,
-      includeFromTokensInfo: true,
-      includeToProfile: true,
-      includeToReverseProfile: true,
-      includeToTokensInfo: true,
+      include: {
+        erc721Metadata: true,
+        from: {
+          profile: true,
+          reverseProfile: true,
+          tokens: {},
+        },
+        to: {
+          profile: true,
+          reverseProfile: true,
+          tokens: {},
+        },
+      },
     });
 
     const tokenTransfer = tokenTransfers?.tokenTransfers[0];
