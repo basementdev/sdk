@@ -337,10 +337,14 @@ export const TokenTransfersDocument = gql`
     $includeERC721Metadata: Boolean = false
     $includeFromProfile: Boolean = false
     $includeFromReverseProfile: Boolean = false
+    $includeFromTokensInfo: Boolean = false
+    $fromTokensLimit: Int = 10
+    $fromTokensFilterSuspectedScam: Boolean = false
     $includeToProfile: Boolean = false
     $includeToReverseProfile: Boolean = false
-    $includeFromTokensInfo: Boolean = false
     $includeToTokensInfo: Boolean = false
+    $toTokensLimit: Int = 10
+    $toTokensFilterSuspectedScam: Boolean = false
   ) {
     tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
       nextCursor
@@ -362,7 +366,10 @@ export const TokenTransfersDocument = gql`
             ...CommonServiceKeys
             ...GlobalKeys
           }
-          tokens @include(if: $includeFromTokensInfo) {
+          tokens(
+            limit: $fromTokensLimit
+            filter: { filterSuspectedScams: $fromTokensFilterSuspectedScam }
+          ) @include(if: $includeFromTokensInfo) {
             ...TokenInfo
           }
         }
@@ -376,7 +383,10 @@ export const TokenTransfersDocument = gql`
             ...CommonServiceKeys
             ...GlobalKeys
           }
-          tokens @include(if: $includeToTokensInfo) {
+          tokens(
+            limit: $toTokensLimit
+            filter: { filterSuspectedScams: $toTokensFilterSuspectedScam }
+          ) @include(if: $includeToTokensInfo) {
             ...TokenInfo
           }
         }
@@ -746,10 +756,14 @@ export type TokenTransfersQueryVariables = Exact<{
   includeERC721Metadata?: InputMaybe<Scalars["Boolean"]>;
   includeFromProfile?: InputMaybe<Scalars["Boolean"]>;
   includeFromReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeFromTokensInfo?: InputMaybe<Scalars["Boolean"]>;
+  fromTokensLimit?: InputMaybe<Scalars["Int"]>;
+  fromTokensFilterSuspectedScam?: InputMaybe<Scalars["Boolean"]>;
   includeToProfile?: InputMaybe<Scalars["Boolean"]>;
   includeToReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeFromTokensInfo?: InputMaybe<Scalars["Boolean"]>;
   includeToTokensInfo?: InputMaybe<Scalars["Boolean"]>;
+  toTokensLimit?: InputMaybe<Scalars["Int"]>;
+  toTokensFilterSuspectedScam?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type TokenTransfersQuery = {
