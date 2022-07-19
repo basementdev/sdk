@@ -128,12 +128,19 @@ Refreshes metadata of a specific token
 ### Example usage:
 
 ```typescript
-# TODO
+const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
+  contract: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+  tokenId: "660",
+});
 ```
 
 ### API
 
-TODO
+| Name       | Type     | Default | Description                                     |
+| ---------- | -------- | ------- | ----------------------------------------------- |
+| `contract` | `string` |         | The contract hex-address.                       |
+| `tokenId`  | `string` |         | The token ID within the contract.               |
+| `id`       | `number` |         | Internal ID - can be used for caching purposes. |
 
 ## `tokenTransfers`
 
