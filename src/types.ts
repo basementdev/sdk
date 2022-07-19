@@ -10,6 +10,13 @@ export type TokensIncludeOption = {
   tokens?: TokenFilterOptions;
 };
 
+export type OwnerOptions = {
+  /** Whether to include the ENS profile information in the response - defaults to `false` */
+  profile?: boolean;
+  /** Whether to include the reverse resolution of the ENS profile information in the response (ENS docs: https://docs.ens.domains/contract-api-reference/reverseregistrar) - defaults to `false`  */
+  reverseProfile?: boolean;
+};
+
 export type AddressQueryIncludeOptions = TokensIncludeOption & OwnerOptions;
 
 export type AddressQueryOptions = {
@@ -17,13 +24,6 @@ export type AddressQueryOptions = {
   name: string;
   /** Includes more data in the response */
   include?: AddressQueryIncludeOptions;
-};
-
-export type OwnerOptions = {
-  /** Whether to include the ENS profile information in the response - defaults to `false` */
-  profile?: boolean;
-  /** Whether to include the reverse resolution of the ENS profile information in the response (ENS docs: https://docs.ens.domains/contract-api-reference/reverseregistrar) - defaults to `false`  */
-  reverseProfile?: boolean;
 };
 
 export type TokenQueryIncludeOptions = {

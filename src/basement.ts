@@ -19,6 +19,7 @@ export const DEFAULT_ENDPOINT = "https://api.basement.dev/graphiql";
 
 export class BasementSDK {
   private sdk: ReturnType<typeof getSdk>;
+
   constructor(endpoint: string = DEFAULT_ENDPOINT) {
     const client = new GraphQLClient(endpoint);
     this.sdk = getSdk(client);
