@@ -1,17 +1,24 @@
 {
   "name": "@basementdev/sdk",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Basement SDK",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "private": false,
   "scripts": {
     "build": "tsc",
     "generate": "graphql-codegen",
     "test": "jest"
   },
-  "keywords": [],
+  "keywords": [
+    "nft",
+    "api",
+    "ethereum",
+    "web3",
+    "basement"
+  ],
   "author": "Basement",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@graphql-codegen/cli": "^2.7.0",
