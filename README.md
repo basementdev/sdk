@@ -33,11 +33,13 @@ const { address } = await sdk.address({
 });
 ```
 
-## `token`
+## Methods
+
+### `token`
 
 Queries information about a specific token
 
-### Example usage:
+#### Example usage
 
 ```typescript
 const { token } = await sdk.token({
@@ -52,7 +54,7 @@ const { token } = await sdk.token({
 });
 ```
 
-### API
+#### Parameters
 
 | Name                           | Type     | Default | Description                                                                                                                                                                      |
 | ------------------------------ | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,11 +66,11 @@ const { token } = await sdk.token({
 | `include.owner.profile`        | `bool`   | `false` | If `true`, the profile information will be included, if available.                                                                                                               |
 | `include.owner.reverseProfile` | `bool`   | `false` | If `true`, the reverse resolution of the ENS ([ENS  docs](https://docs.ens.domains/contract-api-reference/reverseregistrar)) profile information will be included, if available. |
 
-## `tokens`
+### `tokens`
 
 Query tokens that satisfy the given filter(s)
 
-### Example usage:
+#### Example usage
 
 ```typescript
 const { tokens } = await sdk.tokens({
@@ -83,7 +85,7 @@ const { tokens } = await sdk.tokens({
 });
 ```
 
-### API
+#### Parameters
 
 | Name                           | Type     | Default | Description                                                                                                                                                                      |
 | ------------------------------ | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -96,11 +98,11 @@ const { tokens } = await sdk.tokens({
 | `include.owner.reverseProfile` | `bool`   | `false` | If `true`, the reverse resolution of the ENS ([ENS  docs](https://docs.ens.domains/contract-api-reference/reverseregistrar)) profile information will be included, if available. |
 | `cursor`                       | `string` |         | Cursor used for pagination. To go the next page, provide the given cursor from the response.                                                                                     |
 
-## `address`
+### `address`
 
 Queries information about an address
 
-### Example usage:
+#### Example usage
 
 ```typescript
 const { address } = await sdk.address({
@@ -109,7 +111,7 @@ const { address } = await sdk.address({
 });
 ```
 
-### API
+#### Parameters
 
 | Name                                  | Type     | Default | Description                                                                                                                                                                      |
 | ------------------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -121,11 +123,11 @@ const { address } = await sdk.address({
 | `include.tokens.limit`                | `number` | 10      | Maximum number of tokens to return.                                                                                                                                              |
 | `include.tokens.filterSuspectedScams` | `bool`   | `false` | *Experimental* - If `true`, it will remove the results that are suspected to be scams.                                                                                           |
 
-## `tokenMetadataRefresh`
+### `tokenMetadataRefresh`
 
 Refreshes metadata of a specific token
 
-### Example usage:
+#### Example usage
 
 ```typescript
 const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
@@ -134,7 +136,7 @@ const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
 });
 ```
 
-### API
+#### Parameters
 
 | Name       | Type     | Default | Description                                     |
 | ---------- | -------- | ------- | ----------------------------------------------- |
@@ -142,11 +144,11 @@ const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
 | `tokenId`  | `string` |         | The token ID within the contract.               |
 | `id`       | `number` |         | Internal ID - can be used for caching purposes. |
 
-## `tokenTransfers`
+### `tokenTransfers`
 
 Query token transfers that satisfy the given filter(s)
 
-### Example usage:
+#### Example usage
 
 ```typescript
 const { tokenTransfers } = await sdk.tokenTransfers({
@@ -167,7 +169,7 @@ const { tokenTransfers } = await sdk.tokenTransfers({
   },
 });
 ```
-### API
+#### Parameters
 
 | Name                                       | Type     | Default | Description                                                                                                                                                                      |
 | ------------------------------------------ | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
