@@ -11,6 +11,9 @@
     "generate": "graphql-codegen",
     "format": "npx prettier --write src/**/*.ts",
     "lint": "npx eslint src/**/*.ts",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags",
     "test": "jest"
   },
   "keywords": [
