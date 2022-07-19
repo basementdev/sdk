@@ -1,9 +1,9 @@
-import { SDK } from "../src";
+import { BasementSDK } from "../src";
 
 describe("Basement SDK", () => {
   const TOKEN_CONTRACT_ADDRESS = "0xa97d3eb991303cf3b9b759bd026bacb55256e9db";
   const TOKEN_ID = "216";
-  const sdk = new SDK();
+  const sdk = new BasementSDK();
 
   test("token query", async () => {
     const { token } = await sdk.token({
@@ -77,7 +77,6 @@ describe("Basement SDK", () => {
       includeToReverseProfile: true,
       includeToTokensInfo: true,
     });
-
     const tokenTransfer = tokenTransfers?.tokenTransfers[0];
     const tokenTransferKeys = Object.keys(tokenTransfer);
     const tokenTransferFromKeys = Object.keys(tokenTransfer?.from);
