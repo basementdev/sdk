@@ -63,10 +63,14 @@ query tokenTransfers(
   $includeERC721Metadata: Boolean = false
   $includeFromProfile: Boolean = false
   $includeFromReverseProfile: Boolean = false
+  $includeFromTokensInfo: Boolean = false
+  $fromTokensLimit: Int = 10
+  $fromTokensFilterSuspectedScam: Boolean = false
   $includeToProfile: Boolean = false
   $includeToReverseProfile: Boolean = false
-  $includeFromTokensInfo: Boolean = false
   $includeToTokensInfo: Boolean = false
+  $toTokensLimit: Int = 10
+  $toTokensFilterSuspectedScam: Boolean = false
 ) {
   tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
     nextCursor
@@ -88,7 +92,10 @@ query tokenTransfers(
           ...CommonServiceKeys
           ...GlobalKeys
         }
-        tokens @include(if: $includeFromTokensInfo) {
+        tokens(
+          limit: $fromTokensLimit
+          filter: { filterSuspectedScams: $fromTokensFilterSuspectedScam }
+        ) @include(if: $includeFromTokensInfo) {
           ...TokenInfo
         }
       }
@@ -102,7 +109,10 @@ query tokenTransfers(
           ...CommonServiceKeys
           ...GlobalKeys
         }
-        tokens @include(if: $includeToTokensInfo) {
+        tokens(
+          limit: $toTokensLimit
+          filter: { filterSuspectedScams: $toTokensFilterSuspectedScam }
+        ) @include(if: $includeToTokensInfo) {
           ...TokenInfo
         }
       }
