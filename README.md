@@ -149,10 +149,43 @@ Query token transfers that satisfy the given filter(s)
 ### Example usage:
 
 ```typescript
-# TODO
+const { tokenTransfers } = await sdk.tokenTransfers({
+  filter: { contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D" },
+  limit: 5,
+  include: {
+    erc721Metadata: true,
+    from: {
+      profile: true,
+      reverseProfile: true,
+      tokens: {},
+    },
+    to: {
+      profile: true,
+      reverseProfile: true,
+      tokens: {},
+    },
+  },
+});
 ```
-
 ### API
 
-TODO
+| Name                                       | Type     | Default | Description                                                                                                                                                                      |
+| ------------------------------------------ | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `filter`                                   | `object` |         | Object used to return a response based on the filtering option(s).                                                                                                               |
+| `filter.contractAddress`                   | `string` |         | Filter tokens that satisfy the given contract address.                                                                                                                           |
+| `limit`                                    | `number` | 10      | Maximum number of token transfers to return.                                                                                                                                     |
+| `include`                                  | `object` |         | Object used to choose what other data you want to include in the response.                                                                                                       |
+| `include.erc721Metadata`                   | `bool`   | `false` | If `true`, it will include ERC721, like `tokenId`, `attributes`, `contractAddress`, etc.                                                                                         |
+| `include.from`                             | `object` |         | If the `from` object is empty, only the `from`'s address will be included.                                                                                                       |
+| `include.from.profile`                     | `bool`   | `false` | If `true`, the profile information will be included, if available.                                                                                                               |
+| `include.from.reverseProfile`              | `bool`   | `false` | If `true`, the reverse resolution of the ENS ([ENS  docs](https://docs.ens.domains/contract-api-reference/reverseregistrar)) profile information will be included, if available. |
+| `include.from.tokens`                      | `object` |         | If the `tokens` object is empty, it will include the tokens that the address holds with the default values for the parameters inside the `tokens` object.                        |
+| `include.from.tokens.limit`                | `number` | 10      | Maximum number of tokens to return.                                                                                                                                              |
+| `include.from.tokens.filterSuspectedScams` | `bool`   | `false` | *Experimental* - If `true`, it will remove the results that are suspected to be scams.                                                                                           |
+| `include.to`                               | `object` |         | If the `to` object is empty, only the `to`'s address will be included.                                                                                                           |
+| `include.to.profile`                       | `bool`   | `false` | If `true`, the profile information will be included, if available.                                                                                                               |
+| `include.to.reverseProfile`                | `bool`   | `false` | If `true`, the reverse resolution of the ENS ([ENS  docs](https://docs.ens.domains/contract-api-reference/reverseregistrar)) profile information will be included, if available. |
+| `include.to.tokens`                        | `object` |         | If the `tokens` object is empty, it will include the tokens that the address holds with the default values for the parameters inside the `tokens` object.                        |
+| `include.to.tokens.limit`                  | `number` | 10      | Maximum number of tokens to return.                                                                                                                                              |
+| `include.to.tokens.filterSuspectedScams`   | `bool`   | `false` | *Experimental* - If `true`, it will remove the results that are suspected to be scams.                                                                                           |
 
