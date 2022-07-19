@@ -7,11 +7,13 @@ The Basement SDK has sensible defaults and flexibility to allow you to get the d
 Basement SDK is available as an npm package
 
 **npm:**
+
 ```bash
-npm install @basementdev/sdk 
+npm install @basementdev/sdk
 ```
 
 **yarn:**
+
 ```bash
 yarn add @basementdev/sdk
 ```
@@ -31,34 +33,31 @@ const { address } = await sdk.address({
 });
 ```
 
-
 ## `token`
 
 Queries information about a specific token
 
 ```typescript
 const { token } = await sdk.token({
-      contract: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
-      tokenId: "660",
-      include: {
-        owner: {
-          profile: true,
-          reverseProfile: true,
-        },
+  contract: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+  tokenId: "660",
+  include: {
+    owner: {
+      profile: true,
+      reverseProfile: true,
     },
+  },
 });
 ```
 
 ## API
 
 ### TODO
+
 ## `tokens`
 
 ## `address`
 
 ## `tokenMetadataRefresh`
 
-
 ## `tokenTransfers`
-
-
