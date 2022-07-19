@@ -4,7 +4,7 @@ The Basement SDK has sensible defaults and flexibility to allow you to get the d
 
 ## Installation
 
-Basement SDK is available as an npm package
+Basement SDK is available as an [npm package](https://www.npmjs.com/package/@basementdev/sdk)
 
 **npm:**
 
