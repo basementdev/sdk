@@ -6,6 +6,7 @@
   "typings": "dist/index.d.ts",
   "private": false,
   "scripts": {
+    "prepublish": "yarn build",
     "build": "tsc",
     "generate": "graphql-codegen",
     "test": "jest"
@@ -17,6 +18,10 @@
     "web3",
     "basement"
   ],
+  "repository": {
+    "url": "https://github.com/basementdev/sdk"
+  },
+  "homepage": "https://github.com/basementdev/sdk#readme",
   "bugs": {
     "url": "https://github.com/basementdev/sdk/issues"
   },
@@ -49,8 +54,5 @@
   "dependencies": {
     "graphql": "^16.5.0",
     "graphql-request": "^4.3.0"
-  },
-  "peerDependencies": {
-    "@graphql-codegen/typescript-generic-sdk": "^2.3.13"
   }
 }
