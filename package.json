@@ -6,9 +6,11 @@
   "typings": "dist/index.d.ts",
   "private": false,
   "scripts": {
-    "prepublish": "yarn build",
+    "prepublishOnly": "yarn test && yarn build",
     "build": "tsc",
     "generate": "graphql-codegen",
+    "format": "npx prettier --write src/**/*.ts",
+    "lint": "npx eslint src/**/*.ts",
     "test": "jest"
   },
   "keywords": [
@@ -39,9 +41,10 @@
     "@typescript-eslint/parser": "^5.30.7",
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.2.1",
-    "graphql-tag": "^2.12.6",
     "jest": "^28.1.3",
     "msw": "^0.44.0",
     "prettier": "^2.7.1",
@@ -52,6 +55,7 @@
     "dist/*"
   ],
   "dependencies": {
+    "graphql-tag": "^2.12.6",
     "graphql": "^16.5.0",
     "graphql-request": "^4.3.0"
   }
