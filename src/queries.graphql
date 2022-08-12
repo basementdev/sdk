@@ -154,6 +154,7 @@ fragment TokenInfo on TokenMetadata {
 }
 
 fragment GlobalKeys on Profile {
+  name
   avatar: text(key: "avatar")
   description: text(key: "description")
   display: text(key: "display")

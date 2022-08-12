@@ -36,7 +36,6 @@ describe("Basement SDK", () => {
     });
 
     const keys = Object.keys(address);
-
     expect(keys).toEqual(
       expect.arrayContaining(["address", "profile", "reverseProfile"])
     );

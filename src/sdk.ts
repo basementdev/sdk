@@ -190,6 +190,7 @@ export type TransfersFilter = {
 
 export const GlobalKeysFragmentDoc = gql`
   fragment GlobalKeys on Profile {
+    name
     avatar: text(key: "avatar")
     description: text(key: "description")
     display: text(key: "display")
@@ -536,6 +537,7 @@ export type AddressQuery = {
     address: string;
     profile?: {
       __typename?: "Profile";
+      name: string;
       avatar?: string | null;
       description?: string | null;
       display?: string | null;
@@ -555,6 +557,7 @@ export type AddressQuery = {
     } | null;
     reverseProfile?: {
       __typename?: "Profile";
+      name: string;
       avatar?: string | null;
       description?: string | null;
       display?: string | null;
@@ -630,6 +633,7 @@ export type TokenQuery = {
       address: string;
       profile?: {
         __typename?: "Profile";
+        name: string;
         avatar?: string | null;
         description?: string | null;
         display?: string | null;
@@ -649,6 +653,7 @@ export type TokenQuery = {
       } | null;
       reverseProfile?: {
         __typename?: "Profile";
+        name: string;
         avatar?: string | null;
         description?: string | null;
         display?: string | null;
@@ -708,6 +713,7 @@ export type TokensQuery = {
         address: string;
         profile?: {
           __typename?: "Profile";
+          name: string;
           avatar?: string | null;
           description?: string | null;
           display?: string | null;
@@ -727,6 +733,7 @@ export type TokensQuery = {
         } | null;
         reverseProfile?: {
           __typename?: "Profile";
+          name: string;
           avatar?: string | null;
           description?: string | null;
           display?: string | null;
@@ -802,6 +809,7 @@ export type TokenTransfersQuery = {
         address: string;
         profile?: {
           __typename?: "Profile";
+          name: string;
           github?: string | null;
           peepeth?: string | null;
           linkedin?: string | null;
@@ -821,6 +829,7 @@ export type TokenTransfersQuery = {
         } | null;
         reverseProfile?: {
           __typename?: "Profile";
+          name: string;
           github?: string | null;
           peepeth?: string | null;
           linkedin?: string | null;
@@ -864,6 +873,7 @@ export type TokenTransfersQuery = {
         address: string;
         profile?: {
           __typename?: "Profile";
+          name: string;
           github?: string | null;
           peepeth?: string | null;
           linkedin?: string | null;
@@ -883,6 +893,7 @@ export type TokenTransfersQuery = {
         } | null;
         reverseProfile?: {
           __typename?: "Profile";
+          name: string;
           github?: string | null;
           peepeth?: string | null;
           linkedin?: string | null;
@@ -932,6 +943,7 @@ export type TokenOwnerInfoFragment = {
     address: string;
     profile?: {
       __typename?: "Profile";
+      name: string;
       avatar?: string | null;
       description?: string | null;
       display?: string | null;
@@ -951,6 +963,7 @@ export type TokenOwnerInfoFragment = {
     } | null;
     reverseProfile?: {
       __typename?: "Profile";
+      name: string;
       avatar?: string | null;
       description?: string | null;
       display?: string | null;
@@ -994,6 +1007,7 @@ export type TokenInfoFragment = {
 
 export type GlobalKeysFragment = {
   __typename?: "Profile";
+  name: string;
   avatar?: string | null;
   description?: string | null;
   display?: string | null;
