@@ -20,36 +20,199 @@ export type Scalars = {
   Int: number;
   Float: number;
   /**
-   * The `Naive DateTime` scalar type represents a naive date and time without
+   * The `DateTime` scalar type represents a date and time in the UTC
    * timezone. The DateTime appears in a JSON response as an ISO8601 formatted
-   * string.
+   * string, including UTC timezone ("Z"). The parsed date and time string will
+   * be converted to UTC if there is an offset.
    */
-  NaiveDateTime: any;
+  DateTime: any;
+  /** Address with EIP55 checksum */
+  HexAddress: any;
+  /**
+   * The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+   * character sequences. The Json type is most often used to represent a free-form
+   * human-readable json string.
+   */
+  Json: any;
+  /** The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics */
+  LogTopic: any;
+  /** The `wei` scalar takes large integers and converts them to a base10 string. Due to javascript's limits, prices in wei can be inaccurate when passed as a string. */
+  Wei: any;
 };
 
+/** Address on the blockchain, contains info about tokens and ENS profiles */
 export type Address = {
-  __typename?: "Address";
-  address: Scalars["String"];
-  profile?: Maybe<Profile>;
-  reverseProfile?: Maybe<Profile>;
-  tokens?: Maybe<Array<Maybe<TokenMetadata>>>;
+  /** EIP55 checksummed hexadecimal address */
+  address: Scalars["HexAddress"];
+  /**
+   * ENS profile which was used to refer to this address in a top-level argument, null if this address was queried as a hex address instead of an ENS name.
+   *
+   * *Example:*
+   * `address(name: "vitalik.eth") { profile { name } }` will return vitalik.eth as the profile's name.
+   */
+  profile: Maybe<Profile>;
+  /** ENS profile for the reverse-record set in ENS for this address */
+  reverseProfile: Maybe<Profile>;
+  tokens: Maybe<Array<NonFungibleToken>>;
 };
 
+/** Address on the blockchain, contains info about tokens and ENS profiles */
 export type AddressTokensArgs = {
-  filter?: InputMaybe<AddressTokensFilter>;
-  limit?: InputMaybe<Scalars["Int"]>;
+  limit: InputMaybe<Scalars["Int"]>;
 };
 
-export type AddressTokensFilter = {
-  filterSuspectedScams?: InputMaybe<Scalars["Boolean"]>;
+export type Cursors = {
+  after: Maybe<Scalars["String"]>;
+  before: Maybe<Scalars["String"]>;
+};
+
+export type Erc721Token = NonFungibleToken & {
+  animation: Maybe<Media>;
+  animationUrl: Maybe<Scalars["String"]>;
+  backgroundColor: Maybe<Scalars["String"]>;
+  contract: Scalars["String"];
+  description: Maybe<Scalars["String"]>;
+  externalUrl: Maybe<Scalars["String"]>;
+  image: Maybe<Media>;
+  imageStorageType: Maybe<TokenStorageType>;
+  mintPrice: Scalars["Wei"];
+  mintTransaction: Maybe<Transaction>;
+  name: Maybe<Scalars["String"]>;
+  owner: Maybe<Address>;
+  sales: Maybe<Array<NonFungibleTokenSale>>;
+  tokenId: Scalars["String"];
+  tokenUri: Maybe<Scalars["Json"]>;
+  youtubeUrl: Maybe<Scalars["String"]>;
+};
+
+/** A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721. */
+export type Erc721Transfer = TransactionEvent & {
+  /** Block Number in which this transaction was included */
+  blockNumber: Scalars["Int"];
+  /** Address containing this token's contract code */
+  contract: Address;
+  /** Address containing this token's contract code */
+  contractAddress: Scalars["HexAddress"];
+  /** Address sending this token, when this contains the "null address" this token was minted during this transfer */
+  from: Address;
+  /** Whether this was a mint initiated by an address that was not the receiver of this transfer */
+  isAirdrop: Scalars["Boolean"];
+  /** Position of the log within a block in which this transfer was logged */
+  logIndex: Scalars["Int"];
+  /** Sale log found to be associated with this transfer */
+  sale: Maybe<NonFungibleTokenSale>;
+  /** Address receiving this token, when this contains the "null address" this token was burned during this transfer */
+  to: Maybe<Address>;
+  /** Metadata for the token which was transferred */
+  token: NonFungibleToken;
+  /** Token ID which was transferred */
+  tokenId: Scalars["String"];
+  /** Transaction in which this transfer occurred */
+  transaction: Transaction;
+  /** Hash signature of the transaction in which this transfer did occur */
+  transactionHash: Scalars["String"];
+};
+
+export enum ExcludeTransferFilter {
+  /** Mints where the initiatior of the transaction does not match the recipient of the token. */
+  Airdrop = "AIRDROP",
+  /** Transfers without an associated sale or where the value of the transaction is zero. */
+  ZeroEthTransfer = "ZERO_ETH_TRANSFER",
+}
+
+export enum Marketplace {
+  /** Trade made through a wyvern or seaport contract */
+  Opensea = "OPENSEA",
+}
+
+export type Media = {
+  /** Blurhash for showing a gradient while images are fetching, uses formatting from https://blurhash.io */
+  blurhash: Maybe<Scalars["String"]>;
+  /** An arbitrary checksum for this media, useful for caching */
+  checksum: Scalars["String"];
+  /** Image's height, nil if this media is not an image */
+  height: Maybe<Scalars["Int"]>;
+  /** A large render for this token */
+  largeUrl: Maybe<Scalars["String"]>;
+  /** Content-Type as returned by the host of this media */
+  mimeType: Maybe<Scalars["String"]>;
+  /** A small render for this token */
+  smallUrl: Maybe<Scalars["String"]>;
+  /** A thumbnail render for this token */
+  thumbnailUrl: Maybe<Scalars["String"]>;
+  /** Original file stored on Basement's cdn */
+  url: Maybe<Scalars["String"]>;
+  /** Image's width, nil if this media is not an image */
+  width: Maybe<Scalars["Int"]>;
+};
+
+/** Metadata of a token as defined in one of the non-fungible token EIPs */
+export type NonFungibleToken = {
+  /** Animation hosted on Basement CDN */
+  animation: Maybe<Media>;
+  /** Background color given to this token by the creator */
+  backgroundColor: Maybe<Scalars["String"]>;
+  /** Contract where token is hosted */
+  contract: Scalars["String"];
+  /** Description given to this token by the creator */
+  description: Maybe<Scalars["String"]>;
+  /** External URL given to this token by the creator */
+  externalUrl: Maybe<Scalars["String"]>;
+  /** Image hosted on Basement CDN */
+  image: Maybe<Media>;
+  /** Place of storage for the image file */
+  imageStorageType: Maybe<TokenStorageType>;
+  /** Price this token was minted for, inferred from the ether value of the transaction containing the first known transfer */
+  mintPrice: Scalars["Wei"];
+  /** Transaction containing the first known transfer */
+  mintTransaction: Maybe<Transaction>;
+  /** Name given to this token by the creator */
+  name: Maybe<Scalars["String"]>;
+  /** Current owner of this token */
+  owner: Maybe<Address>;
+  /** A list of previous sales for this token */
+  sales: Maybe<Array<NonFungibleTokenSale>>;
+  /** Identifier of the token */
+  tokenId: Scalars["String"];
+  /** Raw metadata as returned by calling tokenUri on the token's contract */
+  tokenUri: Maybe<Scalars["Json"]>;
+  /** Youtube URL given to this token by the creator */
+  youtubeUrl: Maybe<Scalars["String"]>;
+};
+
+/** Index of the log in a transaction signaling the sale. Such as OrdersMatched or OrderFulfilled. */
+export type NonFungibleTokenSale = TransactionEvent & {
+  /** Currency used for this sale. When null this is the native currency */
+  currencyContract: Maybe<Address>;
+  /** In the case of a batch sale, there are multiple sales in one log, this value returns the index within a given log. */
+  eventIndex: Scalars["Int"];
+  /** Index of the log in a transaction signaling the sale. Such as OrdersMatched or OrderFulfilled. */
+  logIndex: Scalars["Int"];
+  /** Maker of this sale as defined by the implementing marketplace contract */
+  maker: Address;
+  /** Marketplace in which this sale occurred */
+  marketplace: Marketplace;
+  /** Marketplace contract used for this sale */
+  marketplaceContract: Address;
+  /** Price in wei, always check currency_contract to check whether this price is in the native currency of the chain or an erc20 equivalent */
+  price: Scalars["Wei"];
+  /** Taker of this sale as defined by the implementing marketplace contract */
+  taker: Address;
+  /** Metadata for the token which was transferred due to this sale */
+  tokenMetadata: Maybe<NonFungibleToken>;
+  transaction: Transaction;
+  /** Hash signature of the transaction in which this sale occurred */
+  transactionHash: Scalars["String"];
 };
 
 export type Profile = {
-  __typename?: "Profile";
-  avatar?: Maybe<Scalars["String"]>;
-  email?: Maybe<Scalars["String"]>;
+  /** Avatar text record, as returned by the ENS resolver. */
+  avatar: Maybe<Scalars["String"]>;
+  /** Email text record, as returned by the ENS resolver. */
+  email: Maybe<Scalars["String"]>;
   name: Scalars["String"];
-  text?: Maybe<Scalars["String"]>;
+  /** Returns any text record stored in ENS with the given key. */
+  text: Maybe<Scalars["String"]>;
 };
 
 export type ProfileTextArgs = {
@@ -57,137 +220,282 @@ export type ProfileTextArgs = {
 };
 
 export type RootMutationType = {
-  __typename?: "RootMutationType";
-  tokenMetadataRefresh?: Maybe<TokenMetadata>;
-  tokenMetadataRefreshCollection?: Maybe<Scalars["Boolean"]>;
+  nonFungibleTokenRefresh: Maybe<Scalars["String"]>;
 };
 
-export type RootMutationTypeTokenMetadataRefreshArgs = {
+export type RootMutationTypeNonFungibleTokenRefreshArgs = {
   contract: Scalars["String"];
-  id?: InputMaybe<Scalars["Int"]>;
-  tokenId?: InputMaybe<Scalars["String"]>;
-};
-
-export type RootMutationTypeTokenMetadataRefreshCollectionArgs = {
-  contract: Scalars["String"];
-  emptyOnly?: InputMaybe<Scalars["Boolean"]>;
-  key: Scalars["String"];
+  tokenId: Scalars["String"];
 };
 
 export type RootQueryType = {
-  __typename?: "RootQueryType";
-  address: Address;
-  feed: Array<TokenTransfer>;
-  ping?: Maybe<Scalars["String"]>;
-  token: TokenMetadata;
-  tokenTransfers?: Maybe<TokenTransfersPage>;
-  tokens?: Maybe<TokensPage>;
+  address: Maybe<Address>;
+  token: Maybe<NonFungibleToken>;
+  tokens: TokensPage;
+  /** Query a transaction */
+  transaction: Maybe<Transaction>;
+  transactionLogs: Maybe<TransactionLogPage>;
+  transactions: Maybe<TransactionPage>;
+  transfers: TransferPage;
 };
 
 export type RootQueryTypeAddressArgs = {
-  name: Scalars["String"];
-};
-
-export type RootQueryTypeFeedArgs = {
-  addresses: Array<Scalars["String"]>;
+  address: Scalars["String"];
 };
 
 export type RootQueryTypeTokenArgs = {
   contract: Scalars["String"];
-  id?: InputMaybe<Scalars["Int"]>;
-  tokenId?: InputMaybe<Scalars["String"]>;
-};
-
-export type RootQueryTypeTokenTransfersArgs = {
-  cursor?: InputMaybe<Scalars["String"]>;
-  filter: TransfersFilter;
-  limit?: InputMaybe<Scalars["Int"]>;
+  tokenId: Scalars["String"];
 };
 
 export type RootQueryTypeTokensArgs = {
-  cursor?: InputMaybe<Scalars["String"]>;
-  filter: TokensFilter;
-  limit?: InputMaybe<Scalars["Int"]>;
+  after: InputMaybe<Scalars["String"]>;
+  before: InputMaybe<Scalars["String"]>;
+  filter: InputMaybe<TokensFilter>;
+  limit: InputMaybe<Scalars["Int"]>;
 };
 
-export type RootSubscriptionType = {
-  __typename?: "RootSubscriptionType";
-  eip721Transfer?: Maybe<Transfer>;
+export type RootQueryTypeTransactionArgs = {
+  hash: Scalars["String"];
 };
 
-export enum ThumbnailSize {
-  Original = "ORIGINAL",
+export type RootQueryTypeTransactionLogsArgs = {
+  after: InputMaybe<Scalars["String"]>;
+  before: InputMaybe<Scalars["String"]>;
+  filter: InputMaybe<TransactionLogFilter>;
+  limit: InputMaybe<Scalars["Int"]>;
+};
+
+export type RootQueryTypeTransactionsArgs = {
+  after: InputMaybe<Scalars["String"]>;
+  before: InputMaybe<Scalars["String"]>;
+  filter: InputMaybe<TransactionFilter>;
+  limit: InputMaybe<Scalars["Int"]>;
+};
+
+export type RootQueryTypeTransfersArgs = {
+  after: InputMaybe<Scalars["String"]>;
+  before: InputMaybe<Scalars["String"]>;
+  filter: InputMaybe<TransfersFilter>;
+  limit: InputMaybe<Scalars["Int"]>;
+};
+
+export enum TokenStorageType {
+  /** Stored on IPFS */
+  Arweave = "ARWEAVE",
+  /** Stored on IPFS */
+  Ipfs = "IPFS",
+  /** Stored in a data-uri */
+  OnChain = "ON_CHAIN",
+  /** Stored on the creator's server */
+  Server = "SERVER",
 }
 
-export type TokenMetadata = {
-  __typename?: "TokenMetadata";
-  attributes?: Maybe<Array<TokenMetadataAttribute>>;
-  contractAddress?: Maybe<Scalars["String"]>;
-  description?: Maybe<Scalars["String"]>;
-  displayName?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["Int"]>;
-  imageUrl?: Maybe<Scalars["String"]>;
-  mintedAt?: Maybe<Scalars["NaiveDateTime"]>;
-  name?: Maybe<Scalars["String"]>;
-  originalImageUrl?: Maybe<Scalars["String"]>;
-  ownerAddress?: Maybe<Address>;
-  thumbnailUrl?: Maybe<Scalars["String"]>;
-  tokenId?: Maybe<Scalars["String"]>;
-  type?: Maybe<Scalars["String"]>;
-};
-
-export type TokenMetadataThumbnailUrlArgs = {
-  size?: InputMaybe<ThumbnailSize>;
-};
-
-export type TokenMetadataAttribute = {
-  __typename?: "TokenMetadataAttribute";
-  displayType?: Maybe<Scalars["String"]>;
-  traitType?: Maybe<Scalars["String"]>;
-  value?: Maybe<Scalars["String"]>;
-};
-
-export type TokenTransfer = {
-  __typename?: "TokenTransfer";
-  blockTimestamp?: Maybe<Scalars["NaiveDateTime"]>;
-  erc721Metadata?: Maybe<TokenMetadata>;
-  from?: Maybe<Address>;
-  fromAddress?: Maybe<Scalars["String"]>;
-  hash?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["Int"]>;
-  to?: Maybe<Address>;
-  toAddress?: Maybe<Scalars["String"]>;
-  toAddressDisplay?: Maybe<Scalars["String"]>;
-  token?: Maybe<Scalars["String"]>;
-};
-
-export type TokenTransfersPage = {
-  __typename?: "TokenTransfersPage";
-  nextCursor?: Maybe<Scalars["String"]>;
-  tokenTransfers?: Maybe<Array<TokenTransfer>>;
-};
-
 export type TokensFilter = {
-  contractAddress?: InputMaybe<Scalars["String"]>;
+  /** A list of addresses who own the returned tokens. */
+  ownerAddresses: InputMaybe<Array<Scalars["String"]>>;
 };
 
 export type TokensPage = {
-  __typename?: "TokensPage";
-  nextCursor?: Maybe<Scalars["String"]>;
-  tokens?: Maybe<Array<TokenMetadata>>;
+  /** Cursors for use in Pagination */
+  cursors: Cursors;
+  /** List of tokens within this page, use the `after` cursor to fetch more tokens */
+  tokens: Array<NonFungibleToken>;
+  /** Total amount of items within the given filters. Capped at 10000 for performance reasons */
+  totalCount: Scalars["Int"];
 };
 
-export type Transfer = {
-  __typename?: "Transfer";
-  from?: Maybe<Scalars["String"]>;
-  to?: Maybe<Scalars["String"]>;
-  token?: Maybe<TokenMetadata>;
+/** A transaction executed and stored on the blockchain */
+export type Transaction = {
+  /** Block Number in which this transaction was included */
+  blockNumber: Scalars["Int"];
+  /** UTC time at which this block was mined */
+  blockTimestamp: Scalars["DateTime"];
+  /** Gas price with which the transaction was executed by the miner in wei */
+  effectiveGasPrice: Scalars["Wei"];
+  /** Indexed transaction events. See implementations of `TransactionEvent` for possible results, */
+  events: Array<TransactionEvent>;
+  /** Address which initiated this transaction */
+  from: Address;
+  /** Maximum amount of gas for which the address allowed the miner to execute */
+  gas: Scalars["Int"];
+  /** Amount of eth paid to execute this transaction, in wei */
+  gasPaid: Scalars["Wei"];
+  /** Gas price with which the transaction was sent by the address in wei */
+  gasPrice: Scalars["Wei"];
+  /** Gas used after execution by the miner */
+  gasUsed: Scalars["Int"];
+  /** Signature hash for this transaction */
+  hash: Scalars["String"];
+  /** Unique identifier within transactions in Basement. Can be useful for caching in for example Apollo Client. */
+  id: Scalars["ID"];
+  /** Position of this transaction within a block */
+  index: Scalars["Int"];
+  /** Complete calldata sent with this transaction */
+  input: Maybe<Scalars["String"]>;
+  /** Logs emitted while executing this transaction */
+  logs: Array<TransactionLog>;
+  /** First 4 bytes of the input, which refer to the function signature of the contract */
+  methodId: Maybe<Scalars["String"]>;
+  /** Whether execution on this transaction succeeded */
+  status: Scalars["Boolean"];
+  /** Address to which this transaction was sent. This can be another wallet, a contract, or nil in the case of a contract creation. */
+  to: Maybe<Address>;
+  /** Number of eth sent with the transaction in wei */
+  value: Scalars["Wei"];
+};
+
+/** An interface implemented by events within a transaction that were indexed in our graph */
+export type TransactionEvent = {
+  /** Hash signature of the transaction in which this sale occurred */
+  transactionHash: Scalars["String"];
+};
+
+export type TransactionFilter = {
+  /** A list of block numbers to include transactions from */
+  blockNumbers: InputMaybe<Array<Scalars["Int"]>>;
+  /** A list of addresses who initiated transactions. Ignored when empty. */
+  fromAddresses: InputMaybe<Array<Scalars["String"]>>;
+  /** A list of methodIds as specified in the first 4 bytes of calldata. Note: this field is not verified to be a valid call. Addresses may send transactions with arbitrary data. */
+  methodIds: InputMaybe<Array<Scalars["String"]>>;
+  /** A list of addresses to whom a transaction was sent. Add `nil` to include contract creation transactions. Ignored when empty. */
+  toAddresses: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
+};
+
+export type TransactionLog = {
+  /** Address of the contract which emitted this log */
+  address: Address;
+  /** Block number in which this log was included */
+  blockNumber: Scalars["Int"];
+  /** Hex encoded data included in the log. */
+  data: Scalars["String"];
+  /** Position of this log within the block */
+  logIndex: Scalars["Int"];
+  /** Whether this log was removed during a block reorg */
+  removed: Scalars["Boolean"];
+  /** List of hex encoded topics, as indexed by this log event */
+  topics: Array<Scalars["String"]>;
+  /** The transaction during which this log was emitted */
+  transaction: Transaction;
+  /** Hash signature of the transaction during which this log was emitted */
+  transactionHash: Scalars["String"];
+};
+
+export type TransactionLogFilter = {
+  /** A list of contract addresses from which this log was emitted.  Ignored when empty. */
+  addresses: InputMaybe<Array<Scalars["String"]>>;
+  /** A list of block numbers to include transaction logs from */
+  blockNumbers: InputMaybe<Array<Scalars["Int"]>>;
+  /** Whether to include logs which were removed during a block reorg, defaults to false. */
+  includeRemoved: InputMaybe<Scalars["Boolean"]>;
+  /**
+   * A list of topics to search for.
+   *
+   * ## Formatting
+   * - Hex encoded: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+   * - Address: "0xC02AAA39B223FE8D0A0E5C4F27EAD9083C756CC2"
+   * - ENS address: "gotu.eth"
+   * - Signature: "Tranfer(address,address,uint256)"
+   *
+   * ## Filtering
+   * Topics filter is a list of lists, similar to eth_getLogs. When a second, third or fourth topic has been specified, the first topic must be specified for performance reasons.
+   * - `[[]]`: Any topic in the first position
+   * - `[["Tranfer(address,address,uint256)"], [], []]`: Must match the first topic, any topic in the second and third position, these cannot be null.`
+   * - `[["Tranfer(address,address,uint256)"], [], ["gotu.eth", "vitalik.eth"]]`: Must match the first topic, any topic in the second position, must match any of the addresses in the third position.`
+   */
+  topics: InputMaybe<Array<Array<Scalars["LogTopic"]>>>;
+  /** Filter on the transactions in which a log was emitted. */
+  transaction: InputMaybe<TransactionLogTransactionFilter>;
+};
+
+export type TransactionLogPage = {
+  /** Cursors for use in Pagination */
+  cursors: Cursors;
+  /** Total amount of items within the given filters. Capped at 10000 for performance reasons. */
+  totalCount: Scalars["Int"];
+  /** List of transaction logs within this page, use the `after` cursor to fetch more tokens */
+  transactionLogs: Array<TransactionLog>;
+};
+
+export type TransactionLogTransactionFilter = {
+  /** A list of addresses who initiated the transaction this log was emitted from. Ignored when empty. */
+  fromAddresses: InputMaybe<Array<Scalars["String"]>>;
+  /** A list of addresses to whom a transaction which emitted this log was sent. Add `nil` to include contract creation transactions. Ignored when empty. */
+  toAddresses: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
+};
+
+export type TransactionPage = {
+  /** Cursors for use in Pagination */
+  cursors: Cursors;
+  /** Total amount of items within the given filters. Capped at 10000 for performance reasons. */
+  totalCount: Scalars["Int"];
+  /** List of transactions within this page, use the `after` cursor to fetch more tokens */
+  transactions: Array<Transaction>;
+};
+
+export type TransferPage = {
+  /** Cursors for use in Pagination */
+  cursors: Cursors;
+  /** Total amount of items within the given filters. Capped at 10000 for performance reasons. */
+  totalCount: Scalars["Int"];
+  /** List of transfers within this page, use the `after` cursor to fetch more tokens */
+  transfers: Array<Erc721Transfer>;
 };
 
 export type TransfersFilter = {
-  contractAddress?: InputMaybe<Scalars["String"]>;
+  /** A list of block numbers to include transfers from */
+  blockNumbers: InputMaybe<Array<Scalars["Int"]>>;
+  /** A contract to include transfers from. */
+  contractAddresses: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
+  /** Categories to exclude transfers from */
+  exclude: InputMaybe<Array<ExcludeTransferFilter>>;
+  /** A list of addresses who received the NFT. Ignored when empty. */
+  fromAddresses: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
+  /** A list of addresses who received the NFT. */
+  toAddresses: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
+  /** Token ids to include transfers from */
+  tokenIds: InputMaybe<Array<InputMaybe<Scalars["String"]>>>;
 };
 
+export const TokenInfoFragmentDoc = gql`
+  fragment TokenInfo on NonFungibleToken {
+    animation {
+      blurhash
+    }
+    backgroundColor
+    contract
+    description
+    externalUrl
+    image {
+      blurhash
+    }
+    imageStorageType
+    mintPrice
+    mintTransaction {
+      blockNumber
+    }
+    name
+    owner {
+      address
+    }
+    sales {
+      eventIndex
+    }
+    tokenId
+    tokenUri
+    youtubeUrl
+  }
+`;
+export const CommonServiceKeysFragmentDoc = gql`
+  fragment CommonServiceKeys on Profile {
+    github: text(key: "com.github")
+    peepeth: text(key: "com.peepeth")
+    linkedin: text(key: "com.linkedin")
+    twitter: text(key: "com.twitter")
+    keybase: text(key: "io.keybase")
+    telegram: text(key: "org.telegram")
+  }
+`;
 export const GlobalKeysFragmentDoc = gql`
   fragment GlobalKeys on Profile {
     name
@@ -203,75 +511,15 @@ export const GlobalKeysFragmentDoc = gql`
     url: text(key: "url")
   }
 `;
-export const CommonServiceKeysFragmentDoc = gql`
-  fragment CommonServiceKeys on Profile {
-    github: text(key: "com.github")
-    peepeth: text(key: "com.peepeth")
-    linkedin: text(key: "com.linkedin")
-    twitter: text(key: "com.twitter")
-    keybase: text(key: "io.keybase")
-    telegram: text(key: "org.telegram")
-  }
-`;
-export const TokenOwnerInfoFragmentDoc = gql`
-  fragment TokenOwnerInfo on TokenMetadata {
-    ownerAddress {
-      address
-      profile @include(if: $includeOwnerProfile) {
-        ...GlobalKeys
-        ...CommonServiceKeys
-      }
-      reverseProfile @include(if: $includeOwnerReverseProfile) {
-        ...GlobalKeys
-        ...CommonServiceKeys
-      }
-    }
-  }
-  ${GlobalKeysFragmentDoc}
-  ${CommonServiceKeysFragmentDoc}
-`;
-export const TokenInfoFragmentDoc = gql`
-  fragment TokenInfo on TokenMetadata {
-    attributes {
-      displayType
-      traitType
-      value
-    }
-    contractAddress
-    description
-    displayName
-    id
-    imageUrl
-    mintedAt
-    name
-    originalImageUrl
-    thumbnailUrl
-    tokenId
-    type
-  }
-`;
-export const TokenMetadataRefreshDocument = gql`
-  mutation tokenMetadataRefresh(
-    $contract: String!
-    $id: Int
-    $tokenId: String
-  ) {
-    tokenMetadataRefresh(contract: $contract, id: $id, tokenId: $tokenId) {
-      ...TokenInfo
-    }
-  }
-  ${TokenInfoFragmentDoc}
-`;
 export const AddressDocument = gql`
   query address(
-    $name: String!
+    $address: String!
     $tokensLimit: Int = 10
     $includeProfile: Boolean = false
     $includeReverseProfile: Boolean = false
-    $filterSuspectedScams: Boolean = false
     $includeTokens: Boolean = false
   ) {
-    address(name: $name) {
+    address(address: $address) {
       address
       profile @include(if: $includeProfile) {
         ...GlobalKeys
@@ -281,10 +529,7 @@ export const AddressDocument = gql`
         ...GlobalKeys
         ...CommonServiceKeys
       }
-      tokens(
-        limit: $tokensLimit
-        filter: { filterSuspectedScams: $filterSuspectedScams }
-      ) @include(if: $includeTokens) {
+      tokens(limit: $tokensLimit) @include(if: $includeTokens) {
         ...TokenInfo
       }
     }
@@ -292,111 +537,6 @@ export const AddressDocument = gql`
   ${GlobalKeysFragmentDoc}
   ${CommonServiceKeysFragmentDoc}
   ${TokenInfoFragmentDoc}
-`;
-export const TokenDocument = gql`
-  query token(
-    $contract: String!
-    $id: Int
-    $tokenId: String
-    $includeOwnerInfo: Boolean = false
-    $includeOwnerProfile: Boolean = false
-    $includeOwnerReverseProfile: Boolean = false
-  ) {
-    token(contract: $contract, id: $id, tokenId: $tokenId) {
-      ...TokenInfo
-      ...TokenOwnerInfo @include(if: $includeOwnerInfo)
-    }
-  }
-  ${TokenInfoFragmentDoc}
-  ${TokenOwnerInfoFragmentDoc}
-`;
-export const TokensDocument = gql`
-  query tokens(
-    $filter: TokensFilter!
-    $limit: Int = 10
-    $cursor: String
-    $includeOwnerProfile: Boolean = false
-    $includeOwnerReverseProfile: Boolean = false
-    $includeOwnerInfo: Boolean = false
-  ) {
-    tokens(filter: $filter, limit: $limit, cursor: $cursor) {
-      nextCursor
-      tokens {
-        ...TokenInfo
-        ...TokenOwnerInfo @include(if: $includeOwnerInfo)
-      }
-    }
-  }
-  ${TokenInfoFragmentDoc}
-  ${TokenOwnerInfoFragmentDoc}
-`;
-export const TokenTransfersDocument = gql`
-  query tokenTransfers(
-    $filter: TransfersFilter!
-    $limit: Int = 10
-    $cursor: String
-    $includeERC721Metadata: Boolean = false
-    $includeFromProfile: Boolean = false
-    $includeFromReverseProfile: Boolean = false
-    $includeFromTokensInfo: Boolean = false
-    $fromTokensLimit: Int = 10
-    $fromTokensFilterSuspectedScam: Boolean = false
-    $includeToProfile: Boolean = false
-    $includeToReverseProfile: Boolean = false
-    $includeToTokensInfo: Boolean = false
-    $toTokensLimit: Int = 10
-    $toTokensFilterSuspectedScam: Boolean = false
-  ) {
-    tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
-      nextCursor
-      tokenTransfers {
-        blockTimestamp
-        hash
-        id
-        token
-        erc721Metadata @include(if: $includeERC721Metadata) {
-          ...TokenInfo
-        }
-        from {
-          address
-          profile @include(if: $includeFromProfile) {
-            ...CommonServiceKeys
-            ...GlobalKeys
-          }
-          reverseProfile @include(if: $includeFromReverseProfile) {
-            ...CommonServiceKeys
-            ...GlobalKeys
-          }
-          tokens(
-            limit: $fromTokensLimit
-            filter: { filterSuspectedScams: $fromTokensFilterSuspectedScam }
-          ) @include(if: $includeFromTokensInfo) {
-            ...TokenInfo
-          }
-        }
-        to {
-          address
-          profile @include(if: $includeToProfile) {
-            ...CommonServiceKeys
-            ...GlobalKeys
-          }
-          reverseProfile @include(if: $includeToReverseProfile) {
-            ...CommonServiceKeys
-            ...GlobalKeys
-          }
-          tokens(
-            limit: $toTokensLimit
-            filter: { filterSuspectedScams: $toTokensFilterSuspectedScam }
-          ) @include(if: $includeToTokensInfo) {
-            ...TokenInfo
-          }
-        }
-      }
-    }
-  }
-  ${TokenInfoFragmentDoc}
-  ${CommonServiceKeysFragmentDoc}
-  ${GlobalKeysFragmentDoc}
 `;
 
 export type SdkFunctionWrapper = <T>(
@@ -416,21 +556,6 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    tokenMetadataRefresh(
-      variables: TokenMetadataRefreshMutationVariables,
-      requestHeaders?: Dom.RequestInit["headers"]
-    ): Promise<TokenMetadataRefreshMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<TokenMetadataRefreshMutation>(
-            TokenMetadataRefreshDocument,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders }
-          ),
-        "tokenMetadataRefresh",
-        "mutation"
-      );
-    },
     address(
       variables: AddressQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
@@ -445,587 +570,116 @@ export function getSdk(
         "query"
       );
     },
-    token(
-      variables: TokenQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"]
-    ): Promise<TokenQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<TokenQuery>(TokenDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "token",
-        "query"
-      );
-    },
-    tokens(
-      variables: TokensQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"]
-    ): Promise<TokensQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<TokensQuery>(TokensDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "tokens",
-        "query"
-      );
-    },
-    tokenTransfers(
-      variables: TokenTransfersQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"]
-    ): Promise<TokenTransfersQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<TokenTransfersQuery>(
-            TokenTransfersDocument,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders }
-          ),
-        "tokenTransfers",
-        "query"
-      );
-    },
   };
 }
+
 export type Sdk = ReturnType<typeof getSdk>;
-export type TokenMetadataRefreshMutationVariables = Exact<{
-  contract: Scalars["String"];
-  id?: InputMaybe<Scalars["Int"]>;
-  tokenId?: InputMaybe<Scalars["String"]>;
-}>;
-
-export type TokenMetadataRefreshMutation = {
-  __typename?: "RootMutationType";
-  tokenMetadataRefresh?: {
-    __typename?: "TokenMetadata";
-    contractAddress?: string | null;
-    description?: string | null;
-    displayName?: string | null;
-    id?: number | null;
-    imageUrl?: string | null;
-    mintedAt?: any | null;
-    name?: string | null;
-    originalImageUrl?: string | null;
-    thumbnailUrl?: string | null;
-    tokenId?: string | null;
-    type?: string | null;
-    attributes?: Array<{
-      __typename?: "TokenMetadataAttribute";
-      displayType?: string | null;
-      traitType?: string | null;
-      value?: string | null;
-    }> | null;
-  } | null;
-};
-
 export type AddressQueryVariables = Exact<{
-  name: Scalars["String"];
+  address: Scalars["String"];
   tokensLimit?: InputMaybe<Scalars["Int"]>;
   includeProfile?: InputMaybe<Scalars["Boolean"]>;
   includeReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  filterSuspectedScams?: InputMaybe<Scalars["Boolean"]>;
   includeTokens?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type AddressQuery = {
-  __typename?: "RootQueryType";
   address: {
-    __typename?: "Address";
-    address: string;
+    address: any;
     profile?: {
-      __typename?: "Profile";
       name: string;
-      avatar?: string | null;
-      description?: string | null;
-      display?: string | null;
-      email?: string | null;
-      keywords?: string | null;
-      mail?: string | null;
-      notice?: string | null;
-      location?: string | null;
-      phone?: string | null;
-      url?: string | null;
-      github?: string | null;
-      peepeth?: string | null;
-      linkedin?: string | null;
-      twitter?: string | null;
-      keybase?: string | null;
-      telegram?: string | null;
+      avatar: string | null;
+      description: string | null;
+      display: string | null;
+      email: string | null;
+      keywords: string | null;
+      mail: string | null;
+      notice: string | null;
+      location: string | null;
+      phone: string | null;
+      url: string | null;
+      github: string | null;
+      peepeth: string | null;
+      linkedin: string | null;
+      twitter: string | null;
+      keybase: string | null;
+      telegram: string | null;
     } | null;
     reverseProfile?: {
-      __typename?: "Profile";
       name: string;
-      avatar?: string | null;
-      description?: string | null;
-      display?: string | null;
-      email?: string | null;
-      keywords?: string | null;
-      mail?: string | null;
-      notice?: string | null;
-      location?: string | null;
-      phone?: string | null;
-      url?: string | null;
-      github?: string | null;
-      peepeth?: string | null;
-      linkedin?: string | null;
-      twitter?: string | null;
-      keybase?: string | null;
-      telegram?: string | null;
+      avatar: string | null;
+      description: string | null;
+      display: string | null;
+      email: string | null;
+      keywords: string | null;
+      mail: string | null;
+      notice: string | null;
+      location: string | null;
+      phone: string | null;
+      url: string | null;
+      github: string | null;
+      peepeth: string | null;
+      linkedin: string | null;
+      twitter: string | null;
+      keybase: string | null;
+      telegram: string | null;
     } | null;
     tokens?: Array<{
-      __typename?: "TokenMetadata";
-      contractAddress?: string | null;
-      description?: string | null;
-      displayName?: string | null;
-      id?: number | null;
-      imageUrl?: string | null;
-      mintedAt?: any | null;
-      name?: string | null;
-      originalImageUrl?: string | null;
-      thumbnailUrl?: string | null;
-      tokenId?: string | null;
-      type?: string | null;
-      attributes?: Array<{
-        __typename?: "TokenMetadataAttribute";
-        displayType?: string | null;
-        traitType?: string | null;
-        value?: string | null;
-      }> | null;
-    } | null> | null;
-  };
-};
-
-export type TokenQueryVariables = Exact<{
-  contract: Scalars["String"];
-  id?: InputMaybe<Scalars["Int"]>;
-  tokenId?: InputMaybe<Scalars["String"]>;
-  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-}>;
-
-export type TokenQuery = {
-  __typename?: "RootQueryType";
-  token: {
-    __typename?: "TokenMetadata";
-    contractAddress?: string | null;
-    description?: string | null;
-    displayName?: string | null;
-    id?: number | null;
-    imageUrl?: string | null;
-    mintedAt?: any | null;
-    name?: string | null;
-    originalImageUrl?: string | null;
-    thumbnailUrl?: string | null;
-    tokenId?: string | null;
-    type?: string | null;
-    attributes?: Array<{
-      __typename?: "TokenMetadataAttribute";
-      displayType?: string | null;
-      traitType?: string | null;
-      value?: string | null;
+      backgroundColor: string | null;
+      contract: string;
+      description: string | null;
+      externalUrl: string | null;
+      imageStorageType: TokenStorageType | null;
+      mintPrice: any;
+      name: string | null;
+      tokenId: string;
+      tokenUri: any | null;
+      youtubeUrl: string | null;
+      animation: { blurhash: string | null } | null;
+      image: { blurhash: string | null } | null;
+      mintTransaction: { blockNumber: number } | null;
+      owner: { address: any } | null;
+      sales: Array<{ eventIndex: number }> | null;
     }> | null;
-    ownerAddress?: {
-      __typename?: "Address";
-      address: string;
-      profile?: {
-        __typename?: "Profile";
-        name: string;
-        avatar?: string | null;
-        description?: string | null;
-        display?: string | null;
-        email?: string | null;
-        keywords?: string | null;
-        mail?: string | null;
-        notice?: string | null;
-        location?: string | null;
-        phone?: string | null;
-        url?: string | null;
-        github?: string | null;
-        peepeth?: string | null;
-        linkedin?: string | null;
-        twitter?: string | null;
-        keybase?: string | null;
-        telegram?: string | null;
-      } | null;
-      reverseProfile?: {
-        __typename?: "Profile";
-        name: string;
-        avatar?: string | null;
-        description?: string | null;
-        display?: string | null;
-        email?: string | null;
-        keywords?: string | null;
-        mail?: string | null;
-        notice?: string | null;
-        location?: string | null;
-        phone?: string | null;
-        url?: string | null;
-        github?: string | null;
-        peepeth?: string | null;
-        linkedin?: string | null;
-        twitter?: string | null;
-        keybase?: string | null;
-        telegram?: string | null;
-      } | null;
-    } | null;
-  };
-};
-
-export type TokensQueryVariables = Exact<{
-  filter: TokensFilter;
-  limit?: InputMaybe<Scalars["Int"]>;
-  cursor?: InputMaybe<Scalars["String"]>;
-  includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
-}>;
-
-export type TokensQuery = {
-  __typename?: "RootQueryType";
-  tokens?: {
-    __typename?: "TokensPage";
-    nextCursor?: string | null;
-    tokens?: Array<{
-      __typename?: "TokenMetadata";
-      contractAddress?: string | null;
-      description?: string | null;
-      displayName?: string | null;
-      id?: number | null;
-      imageUrl?: string | null;
-      mintedAt?: any | null;
-      name?: string | null;
-      originalImageUrl?: string | null;
-      thumbnailUrl?: string | null;
-      tokenId?: string | null;
-      type?: string | null;
-      attributes?: Array<{
-        __typename?: "TokenMetadataAttribute";
-        displayType?: string | null;
-        traitType?: string | null;
-        value?: string | null;
-      }> | null;
-      ownerAddress?: {
-        __typename?: "Address";
-        address: string;
-        profile?: {
-          __typename?: "Profile";
-          name: string;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-        } | null;
-        reverseProfile?: {
-          __typename?: "Profile";
-          name: string;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-        } | null;
-      } | null;
-    }> | null;
-  } | null;
-};
-
-export type TokenTransfersQueryVariables = Exact<{
-  filter: TransfersFilter;
-  limit?: InputMaybe<Scalars["Int"]>;
-  cursor?: InputMaybe<Scalars["String"]>;
-  includeERC721Metadata?: InputMaybe<Scalars["Boolean"]>;
-  includeFromProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeFromReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeFromTokensInfo?: InputMaybe<Scalars["Boolean"]>;
-  fromTokensLimit?: InputMaybe<Scalars["Int"]>;
-  fromTokensFilterSuspectedScam?: InputMaybe<Scalars["Boolean"]>;
-  includeToProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeToReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeToTokensInfo?: InputMaybe<Scalars["Boolean"]>;
-  toTokensLimit?: InputMaybe<Scalars["Int"]>;
-  toTokensFilterSuspectedScam?: InputMaybe<Scalars["Boolean"]>;
-}>;
-
-export type TokenTransfersQuery = {
-  __typename?: "RootQueryType";
-  tokenTransfers?: {
-    __typename?: "TokenTransfersPage";
-    nextCursor?: string | null;
-    tokenTransfers?: Array<{
-      __typename?: "TokenTransfer";
-      blockTimestamp?: any | null;
-      hash?: string | null;
-      id?: number | null;
-      token?: string | null;
-      erc721Metadata?: {
-        __typename?: "TokenMetadata";
-        contractAddress?: string | null;
-        description?: string | null;
-        displayName?: string | null;
-        id?: number | null;
-        imageUrl?: string | null;
-        mintedAt?: any | null;
-        name?: string | null;
-        originalImageUrl?: string | null;
-        thumbnailUrl?: string | null;
-        tokenId?: string | null;
-        type?: string | null;
-        attributes?: Array<{
-          __typename?: "TokenMetadataAttribute";
-          displayType?: string | null;
-          traitType?: string | null;
-          value?: string | null;
-        }> | null;
-      } | null;
-      from?: {
-        __typename?: "Address";
-        address: string;
-        profile?: {
-          __typename?: "Profile";
-          name: string;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-        } | null;
-        reverseProfile?: {
-          __typename?: "Profile";
-          name: string;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-        } | null;
-        tokens?: Array<{
-          __typename?: "TokenMetadata";
-          contractAddress?: string | null;
-          description?: string | null;
-          displayName?: string | null;
-          id?: number | null;
-          imageUrl?: string | null;
-          mintedAt?: any | null;
-          name?: string | null;
-          originalImageUrl?: string | null;
-          thumbnailUrl?: string | null;
-          tokenId?: string | null;
-          type?: string | null;
-          attributes?: Array<{
-            __typename?: "TokenMetadataAttribute";
-            displayType?: string | null;
-            traitType?: string | null;
-            value?: string | null;
-          }> | null;
-        } | null> | null;
-      } | null;
-      to?: {
-        __typename?: "Address";
-        address: string;
-        profile?: {
-          __typename?: "Profile";
-          name: string;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-        } | null;
-        reverseProfile?: {
-          __typename?: "Profile";
-          name: string;
-          github?: string | null;
-          peepeth?: string | null;
-          linkedin?: string | null;
-          twitter?: string | null;
-          keybase?: string | null;
-          telegram?: string | null;
-          avatar?: string | null;
-          description?: string | null;
-          display?: string | null;
-          email?: string | null;
-          keywords?: string | null;
-          mail?: string | null;
-          notice?: string | null;
-          location?: string | null;
-          phone?: string | null;
-          url?: string | null;
-        } | null;
-        tokens?: Array<{
-          __typename?: "TokenMetadata";
-          contractAddress?: string | null;
-          description?: string | null;
-          displayName?: string | null;
-          id?: number | null;
-          imageUrl?: string | null;
-          mintedAt?: any | null;
-          name?: string | null;
-          originalImageUrl?: string | null;
-          thumbnailUrl?: string | null;
-          tokenId?: string | null;
-          type?: string | null;
-          attributes?: Array<{
-            __typename?: "TokenMetadataAttribute";
-            displayType?: string | null;
-            traitType?: string | null;
-            value?: string | null;
-          }> | null;
-        } | null> | null;
-      } | null;
-    }> | null;
-  } | null;
-};
-
-export type TokenOwnerInfoFragment = {
-  __typename?: "TokenMetadata";
-  ownerAddress?: {
-    __typename?: "Address";
-    address: string;
-    profile?: {
-      __typename?: "Profile";
-      name: string;
-      avatar?: string | null;
-      description?: string | null;
-      display?: string | null;
-      email?: string | null;
-      keywords?: string | null;
-      mail?: string | null;
-      notice?: string | null;
-      location?: string | null;
-      phone?: string | null;
-      url?: string | null;
-      github?: string | null;
-      peepeth?: string | null;
-      linkedin?: string | null;
-      twitter?: string | null;
-      keybase?: string | null;
-      telegram?: string | null;
-    } | null;
-    reverseProfile?: {
-      __typename?: "Profile";
-      name: string;
-      avatar?: string | null;
-      description?: string | null;
-      display?: string | null;
-      email?: string | null;
-      keywords?: string | null;
-      mail?: string | null;
-      notice?: string | null;
-      location?: string | null;
-      phone?: string | null;
-      url?: string | null;
-      github?: string | null;
-      peepeth?: string | null;
-      linkedin?: string | null;
-      twitter?: string | null;
-      keybase?: string | null;
-      telegram?: string | null;
-    } | null;
   } | null;
 };
 
 export type TokenInfoFragment = {
-  __typename?: "TokenMetadata";
-  contractAddress?: string | null;
-  description?: string | null;
-  displayName?: string | null;
-  id?: number | null;
-  imageUrl?: string | null;
-  mintedAt?: any | null;
-  name?: string | null;
-  originalImageUrl?: string | null;
-  thumbnailUrl?: string | null;
-  tokenId?: string | null;
-  type?: string | null;
-  attributes?: Array<{
-    __typename?: "TokenMetadataAttribute";
-    displayType?: string | null;
-    traitType?: string | null;
-    value?: string | null;
-  }> | null;
-};
-
-export type GlobalKeysFragment = {
-  __typename?: "Profile";
-  name: string;
-  avatar?: string | null;
-  description?: string | null;
-  display?: string | null;
-  email?: string | null;
-  keywords?: string | null;
-  mail?: string | null;
-  notice?: string | null;
-  location?: string | null;
-  phone?: string | null;
-  url?: string | null;
+  backgroundColor: string | null;
+  contract: string;
+  description: string | null;
+  externalUrl: string | null;
+  imageStorageType: TokenStorageType | null;
+  mintPrice: any;
+  name: string | null;
+  tokenId: string;
+  tokenUri: any | null;
+  youtubeUrl: string | null;
+  animation: { blurhash: string | null } | null;
+  image: { blurhash: string | null } | null;
+  mintTransaction: { blockNumber: number } | null;
+  owner: { address: any } | null;
+  sales: Array<{ eventIndex: number }> | null;
 };
 
 export type CommonServiceKeysFragment = {
-  __typename?: "Profile";
-  github?: string | null;
-  peepeth?: string | null;
-  linkedin?: string | null;
-  twitter?: string | null;
-  keybase?: string | null;
-  telegram?: string | null;
+  github: string | null;
+  peepeth: string | null;
+  linkedin: string | null;
+  twitter: string | null;
+  keybase: string | null;
+  telegram: string | null;
+};
+
+export type GlobalKeysFragment = {
+  name: string;
+  avatar: string | null;
+  description: string | null;
+  display: string | null;
+  email: string | null;
+  keywords: string | null;
+  mail: string | null;
+  notice: string | null;
+  location: string | null;
+  phone: string | null;
+  url: string | null;
 };

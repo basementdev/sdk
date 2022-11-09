@@ -2,123 +2,497 @@
 schema {
   query: RootQueryType
   mutation: RootMutationType
-  subscription: RootSubscriptionType
 }
 
-type TokenMetadataAttribute {
-  traitType: String
-  value: String
-  displayType: String
+type Cursors {
+  after: String
+  before: String
 }
 
-type RootSubscriptionType {
-  eip721Transfer: Transfer
+"Address with EIP55 checksum"
+scalar HexAddress
+
+"A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721."
+type Erc721Transfer implements TransactionEvent {
+  "Hash signature of the transaction in which this transfer did occur"
+  transactionHash: String!
+
+  "Position of the log within a block in which this transfer was logged"
+  logIndex: Int!
+
+  "Whether this was a mint initiated by an address that was not the receiver of this transfer"
+  isAirdrop: Boolean!
+
+  "Address containing this token's contract code"
+  contractAddress: HexAddress!
+
+  "Token ID which was transferred"
+  tokenId: String!
+
+  "Block Number in which this transaction was included"
+  blockNumber: Int!
+
+  "Address containing this token's contract code"
+  contract: Address!
+
+  "Address sending this token, when this contains the \"null address\" this token was minted during this transfer"
+  from: Address!
+
+  "Address receiving this token, when this contains the \"null address\" this token was burned during this transfer"
+  to: Address
+
+  "Transaction in which this transfer occurred"
+  transaction: Transaction!
+
+  "Metadata for the token which was transferred"
+  token: NonFungibleToken!
+
+  "Sale log found to be associated with this transfer"
+  sale: NonFungibleTokenSale
 }
 
-enum ThumbnailSize {
-  ORIGINAL
+type Media {
+  "An arbitrary checksum for this media, useful for caching"
+  checksum: String!
+
+  "Blurhash for showing a gradient while images are fetching, uses formatting from https:\/\/blurhash.io"
+  blurhash: String
+
+  "Original file stored on Basement's cdn"
+  url: String
+
+  "A small render for this token"
+  smallUrl: String
+
+  "A thumbnail render for this token"
+  thumbnailUrl: String
+
+  "A large render for this token"
+  largeUrl: String
+
+  "Image's width, nil if this media is not an image"
+  width: Int
+
+  "Image's height, nil if this media is not an image"
+  height: Int
+
+  "Content-Type as returned by the host of this media"
+  mimeType: String
 }
 
-"""
-The `Naive DateTime` scalar type represents a naive date and time without
-timezone. The DateTime appears in a JSON response as an ISO8601 formatted
-string.
-"""
-scalar NaiveDateTime
+type Erc721Token implements NonFungibleToken {
+  contract: String!
+  tokenId: String!
+  name: String
+  description: String
+  externalUrl: String
+  backgroundColor: String
+  animationUrl: String
+  youtubeUrl: String
+  tokenUri: Json
+  image: Media
+  animation: Media
+  imageStorageType: TokenStorageType
+  owner: Address
+  sales: [NonFungibleTokenSale!]
+  mintPrice: Wei!
+  mintTransaction: Transaction
+}
+
+"Index of the log in a transaction signaling the sale. Such as OrdersMatched or OrderFulfilled."
+type NonFungibleTokenSale implements TransactionEvent {
+  "Hash signature of the transaction in which this sale occurred"
+  transactionHash: String!
+
+  "Index of the log in a transaction signaling the sale. Such as OrdersMatched or OrderFulfilled."
+  logIndex: Int!
+
+  "In the case of a batch sale, there are multiple sales in one log, this value returns the index within a given log."
+  eventIndex: Int!
+
+  transaction: Transaction!
+
+  "Price in wei, always check currency_contract to check whether this price is in the native currency of the chain or an erc20 equivalent"
+  price: Wei!
+
+  "Currency used for this sale. When null this is the native currency"
+  currencyContract: Address
+
+  "Maker of this sale as defined by the implementing marketplace contract"
+  maker: Address!
+
+  "Taker of this sale as defined by the implementing marketplace contract"
+  taker: Address!
+
+  "Marketplace contract used for this sale"
+  marketplaceContract: Address!
+
+  "Marketplace in which this sale occurred"
+  marketplace: Marketplace!
+
+  "Metadata for the token which was transferred due to this sale"
+  tokenMetadata: NonFungibleToken
+}
 
 input TransfersFilter {
-  contractAddress: String
+  "A list of addresses who received the NFT. Ignored when empty."
+  fromAddresses: [String]
+
+  "A list of addresses who received the NFT."
+  toAddresses: [String]
+
+  "A list of block numbers to include transfers from"
+  blockNumbers: [Int!]
+
+  "A contract to include transfers from."
+  contractAddresses: [String]
+
+  "Token ids to include transfers from"
+  tokenIds: [String]
+
+  "Categories to exclude transfers from"
+  exclude: [ExcludeTransferFilter!]
 }
 
+"Address on the blockchain, contains info about tokens and ENS profiles"
 type Address {
-  address: String!
+  "EIP55 checksummed hexadecimal address"
+  address: HexAddress!
+
+  "ENS profile for the reverse-record set in ENS for this address"
   reverseProfile: Profile
+
+  """
+  ENS profile which was used to refer to this address in a top-level argument, null if this address was queried as a hex address instead of an ENS name.
+
+  *Example:*
+  `address(name: "vitalik.eth") { profile { name } }` will return vitalik.eth as the profile's name.
+  """
   profile: Profile
-  tokens(limit: Int, filter: AddressTokensFilter): [TokenMetadata]
+
+  tokens(limit: Int): [NonFungibleToken!]
 }
 
-type TokenTransfer {
-  id: Int
-  hash: String
-  token: String
-  from: Address
-  to: Address
-  fromAddress: String
-  toAddress: String
-  toAddressDisplay: String
-  erc721Metadata: TokenMetadata
-  blockTimestamp: NaiveDateTime
+input TransactionLogTransactionFilter {
+  "A list of addresses to whom a transaction which emitted this log was sent. Add `nil` to include contract creation transactions. Ignored when empty."
+  toAddresses: [String]
+
+  "A list of addresses who initiated the transaction this log was emitted from. Ignored when empty."
+  fromAddresses: [String!]
 }
 
 input TokensFilter {
-  contractAddress: String
+  "A list of addresses who own the returned tokens."
+  ownerAddresses: [String!]
 }
+
+"The `wei` scalar takes large integers and converts them to a base10 string. Due to javascript's limits, prices in wei can be inaccurate when passed as a string."
+scalar Wei
+
+"The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics"
+scalar LogTopic
 
 type RootQueryType {
-  ping: String
-  feed(addresses: [String!]!): [TokenTransfer!]!
-  token(contract: String!, tokenId: String, id: Int): TokenMetadata!
-  tokens(limit: Int, cursor: String, filter: TokensFilter!): TokensPage
-  tokenTransfers(
-    limit: Int
-    cursor: String
-    filter: TransfersFilter!
-  ): TokenTransfersPage
-  address(name: String!): Address!
+  address(address: String!): Address
+
+  transfers(filter: TransfersFilter, after: String, before: String, limit: Int): TransferPage!
+
+  token(contract: String!, tokenId: String!): NonFungibleToken
+
+  tokens(filter: TokensFilter, after: String, before: String, limit: Int): TokensPage!
+
+  "Query a transaction"
+  transaction(hash: String!): Transaction
+
+  transactionLogs(filter: TransactionLogFilter, after: String, before: String, limit: Int): TransactionLogPage
+
+  transactions(filter: TransactionFilter, after: String, before: String, limit: Int): TransactionPage
 }
 
-input AddressTokensFilter {
-  filterSuspectedScams: Boolean
+type TransactionLogPage {
+  "List of transaction logs within this page, use the `after` cursor to fetch more tokens"
+  transactionLogs: [TransactionLog!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
 }
 
-type Transfer {
-  from: String
-  to: String
-  token: TokenMetadata
+"""
+The `DateTime` scalar type represents a date and time in the UTC
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string, including UTC timezone ("Z"). The parsed date and time string will
+be converted to UTC if there is an offset.
+"""
+scalar DateTime
+
+input TransactionLogFilter {
+  "A list of contract addresses from which this log was emitted.  Ignored when empty."
+  addresses: [String!]
+
+  """
+  A list of topics to search for.
+
+  ## Formatting
+  - Hex encoded: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+  - Address: "0xC02AAA39B223FE8D0A0E5C4F27EAD9083C756CC2"
+  - ENS address: "gotu.eth"
+  - Signature: "Tranfer(address,address,uint256)"
+
+  ## Filtering
+  Topics filter is a list of lists, similar to eth_getLogs. When a second, third or fourth topic has been specified, the first topic must be specified for performance reasons.
+  - `[[]]`: Any topic in the first position
+  - `[["Tranfer(address,address,uint256)"], [], []]`: Must match the first topic, any topic in the second and third position, these cannot be null.`
+  - `[["Tranfer(address,address,uint256)"], [], ["gotu.eth", "vitalik.eth"]]`: Must match the first topic, any topic in the second position, must match any of the addresses in the third position.`
+  """
+  topics: [[LogTopic!]!]
+
+  "Whether to include logs which were removed during a block reorg, defaults to false."
+  includeRemoved: Boolean
+
+  "A list of block numbers to include transaction logs from"
+  blockNumbers: [Int!]
+
+  "Filter on the transactions in which a log was emitted."
+  transaction: TransactionLogTransactionFilter
+}
+
+enum Marketplace {
+  "Trade made through a wyvern or seaport contract"
+  OPENSEA
+}
+
+type TransactionLog {
+  "Block number in which this log was included"
+  blockNumber: Int!
+
+  "Position of this log within the block"
+  logIndex: Int!
+
+  "Address of the contract which emitted this log"
+  address: Address!
+
+  "Hash signature of the transaction during which this log was emitted"
+  transactionHash: String!
+
+  "List of hex encoded topics, as indexed by this log event"
+  topics: [String!]!
+
+  "Hex encoded data included in the log."
+  data: String!
+
+  "Whether this log was removed during a block reorg"
+  removed: Boolean!
+
+  "The transaction during which this log was emitted"
+  transaction: Transaction!
+}
+
+input TransactionFilter {
+  "A list of addresses who initiated transactions. Ignored when empty."
+  fromAddresses: [String!]
+
+  "A list of addresses to whom a transaction was sent. Add `nil` to include contract creation transactions. Ignored when empty."
+  toAddresses: [String]
+
+  "A list of block numbers to include transactions from"
+  blockNumbers: [Int!]
+
+  "A list of methodIds as specified in the first 4 bytes of calldata. Note: this field is not verified to be a valid call. Addresses may send transactions with arbitrary data."
+  methodIds: [String!]
+}
+
+type TransferPage {
+  "List of transfers within this page, use the `after` cursor to fetch more tokens"
+  transfers: [Erc721Transfer!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
+}
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar Json
+
+type TransactionPage {
+  "List of transactions within this page, use the `after` cursor to fetch more tokens"
+  transactions: [Transaction!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
+}
+
+enum TokenStorageType {
+  "Stored in a data-uri"
+  ON_CHAIN
+
+  "Stored on IPFS"
+  IPFS
+
+  "Stored on IPFS"
+  ARWEAVE
+
+  "Stored on the creator's server"
+  SERVER
 }
 
 type Profile {
   name: String!
+
+  "Avatar text record, as returned by the ENS resolver."
   avatar: String
+
+  "Email text record, as returned by the ENS resolver."
   email: String
-  text(key: String!): String
+
+  "Returns any text record stored in ENS with the given key."
+  text(
+    "Key to return a text record for. For common keys, see: https:\/\/docs.ens.domains\/ens-improvement-proposals\/ensip-5-text-records#global-keys"
+    key: String!
+  ): String
 }
 
-type TokenMetadata {
-  id: Int
-  contractAddress: String
-  tokenId: String
+"Metadata of a token as defined in one of the non-fungible token EIPs"
+interface NonFungibleToken {
+  "Contract where token is hosted"
+  contract: String!
+
+  "Identifier of the token"
+  tokenId: String!
+
+  "Name given to this token by the creator"
   name: String
-  displayName: String
+
+  "Description given to this token by the creator"
   description: String
-  originalImageUrl: String
-  imageUrl: String
-  thumbnailUrl(size: ThumbnailSize): String
-  type: String
-  ownerAddress: Address
-  mintedAt: NaiveDateTime
-  attributes: [TokenMetadataAttribute!]
+
+  "External URL given to this token by the creator"
+  externalUrl: String
+
+  "Background color given to this token by the creator"
+  backgroundColor: String
+
+  "Youtube URL given to this token by the creator"
+  youtubeUrl: String
+
+  "Raw metadata as returned by calling tokenUri on the token's contract"
+  tokenUri: Json
+
+  "Image hosted on Basement CDN"
+  image: Media
+
+  "Animation hosted on Basement CDN"
+  animation: Media
+
+  "A list of previous sales for this token"
+  sales: [NonFungibleTokenSale!]
+
+  "Current owner of this token"
+  owner: Address
+
+  "Price this token was minted for, inferred from the ether value of the transaction containing the first known transfer"
+  mintPrice: Wei!
+
+  "Transaction containing the first known transfer"
+  mintTransaction: Transaction
+
+  "Place of storage for the image file"
+  imageStorageType: TokenStorageType
+}
+
+"An interface implemented by events within a transaction that were indexed in our graph"
+interface TransactionEvent {
+  "Hash signature of the transaction in which this sale occurred"
+  transactionHash: String!
 }
 
 type RootMutationType {
-  tokenMetadataRefresh(
-    contract: String!
-    tokenId: String
-    id: Int
-  ): TokenMetadata
-  tokenMetadataRefreshCollection(
-    contract: String!
-    key: String!
-    emptyOnly: Boolean
-  ): Boolean
+  nonFungibleTokenRefresh(contract: String!, tokenId: String!): String
 }
 
 type TokensPage {
-  tokens: [TokenMetadata!]
-  nextCursor: String
+  "List of tokens within this page, use the `after` cursor to fetch more tokens"
+  tokens: [NonFungibleToken!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons"
+  totalCount: Int!
 }
 
-type TokenTransfersPage {
-  tokenTransfers: [TokenTransfer!]
-  nextCursor: String
+enum ExcludeTransferFilter {
+  "Transfers without an associated sale or where the value of the transaction is zero."
+  ZERO_ETH_TRANSFER
+
+  "Mints where the initiatior of the transaction does not match the recipient of the token."
+  AIRDROP
+}
+
+"A transaction executed and stored on the blockchain"
+type Transaction {
+  "Unique identifier within transactions in Basement. Can be useful for caching in for example Apollo Client."
+  id: ID!
+
+  "Signature hash for this transaction"
+  hash: String!
+
+  "Position of this transaction within a block"
+  index: Int!
+
+  "Block Number in which this transaction was included"
+  blockNumber: Int!
+
+  "UTC time at which this block was mined"
+  blockTimestamp: DateTime!
+
+  "Complete calldata sent with this transaction"
+  input: String
+
+  "First 4 bytes of the input, which refer to the function signature of the contract"
+  methodId: String
+
+  "Number of eth sent with the transaction in wei"
+  value: Wei!
+
+  "Gas price with which the transaction was sent by the address in wei"
+  gasPrice: Wei!
+
+  "Maximum amount of gas for which the address allowed the miner to execute"
+  gas: Int!
+
+  "Gas price with which the transaction was executed by the miner in wei"
+  effectiveGasPrice: Wei!
+
+  "Gas used after execution by the miner"
+  gasUsed: Int!
+
+  "Whether execution on this transaction succeeded"
+  status: Boolean!
+
+  "Amount of eth paid to execute this transaction, in wei"
+  gasPaid: Wei!
+
+  "Address which initiated this transaction"
+  from: Address!
+
+  "Address to which this transaction was sent. This can be another wallet, a contract, or nil in the case of a contract creation."
+  to: Address
+
+  "Indexed transaction events. See implementations of `TransactionEvent` for possible results,"
+  events: [TransactionEvent!]!
+
+  "Logs emitted while executing this transaction"
+  logs: [TransactionLog!]!
 }

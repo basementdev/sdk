@@ -2,7 +2,6 @@ export type TokenFilterOptions = {
   /** Maximum number of tokens to return  - defaults to `10`  */
   limit?: number;
   /** *Experimental* - Whether to remove the results that are suspected to be scams - defaults to `false` */
-  filterSuspectedScams?: boolean;
 };
 
 export type TokensIncludeOption = {
@@ -21,7 +20,7 @@ export type AddressQueryIncludeOptions = TokensIncludeOption & OwnerOptions;
 
 export type AddressQueryOptions = {
   /** hex-address or ENS address */
-  name: string;
+  address: string;
   /** Includes more data in the response */
   include?: AddressQueryIncludeOptions;
 };

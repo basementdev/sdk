@@ -1,9 +1,9 @@
 import { graphql, GraphQLRequest } from "msw";
 import {
   AddressQueryVariables,
-  TokenQueryVariables,
-  TokensQueryVariables,
-  TokenTransfersQueryVariables,
+  // TokenQueryVariables,
+  // TokensQueryVariables,
+  // TokenTransfersQueryVariables,
 } from "../src/sdk";
 
 type OwnerInfoOptions = {
@@ -33,29 +33,29 @@ function populateOwnerInfo({
 }
 
 export const handlers = [
-  graphql.query(
-    "token",
-    (req: GraphQLRequest<TokenQueryVariables>, res, ctx) => {
-      const {
-        includeOwnerInfo,
-        includeOwnerProfile,
-        includeOwnerReverseProfile,
-      } = req.variables;
+  // graphql.query(
+  //   "token",
+  //   (req: GraphQLRequest<TokenQueryVariables>, res, ctx) => {
+  //     const {
+  //       includeOwnerInfo,
+  //       includeOwnerProfile,
+  //       includeOwnerReverseProfile,
+  //     } = req.variables;
 
-      const populatedOwnerInfo = populateOwnerInfo({
-        includeOwnerInfo,
-        includeOwnerProfile,
-        includeOwnerReverseProfile,
-      });
-      return res(
-        ctx.data({
-          token: {
-            ...populatedOwnerInfo,
-          },
-        })
-      );
-    }
-  ),
+  //     const populatedOwnerInfo = populateOwnerInfo({
+  //       includeOwnerInfo,
+  //       includeOwnerProfile,
+  //       includeOwnerReverseProfile,
+  //     });
+  //     return res(
+  //       ctx.data({
+  //         token: {
+  //           ...populatedOwnerInfo,
+  //         },
+  //       })
+  //     );
+  //   }
+  // ),
 
   graphql.query(
     "address",
@@ -93,84 +93,84 @@ export const handlers = [
     return res(ctx.data({ tokenMetadataRefresh: {} }));
   }),
 
-  graphql.query(
-    "tokens",
-    (req: GraphQLRequest<TokensQueryVariables>, res, ctx) => {
-      const {
-        includeOwnerInfo,
-        includeOwnerProfile,
-        includeOwnerReverseProfile,
-        limit,
-      } = req.variables;
+  // graphql.query(
+  //   "tokens",
+  //   (req: GraphQLRequest<TokensQueryVariables>, res, ctx) => {
+  //     const {
+  //       includeOwnerInfo,
+  //       includeOwnerProfile,
+  //       includeOwnerReverseProfile,
+  //       limit,
+  //     } = req.variables;
 
-      const populatedOwnerInfo = populateOwnerInfo({
-        includeOwnerInfo,
-        includeOwnerProfile,
-        includeOwnerReverseProfile,
-      });
+  //     const populatedOwnerInfo = populateOwnerInfo({
+  //       includeOwnerInfo,
+  //       includeOwnerProfile,
+  //       includeOwnerReverseProfile,
+  //     });
 
-      const tokensRes = new Array(limit).fill({ ...populatedOwnerInfo });
+  //     const tokensRes = new Array(limit).fill({ ...populatedOwnerInfo });
 
-      return res(
-        ctx.data({
-          tokens: {
-            tokens: tokensRes,
-          },
-        })
-      );
-    }
-  ),
+  //     return res(
+  //       ctx.data({
+  //         tokens: {
+  //           tokens: tokensRes,
+  //         },
+  //       })
+  //     );
+  //   }
+  // ),
 
-  graphql.query(
-    "tokenTransfers",
-    (req: GraphQLRequest<TokenTransfersQueryVariables>, res, ctx) => {
-      const dynamicRes: any = { from: { address: "" }, to: { address: "" } };
-      const {
-        includeERC721Metadata,
-        includeFromProfile,
-        includeFromReverseProfile,
-        includeFromTokensInfo,
-        includeToProfile,
-        includeToReverseProfile,
-        includeToTokensInfo,
-        limit,
-      } = req.variables;
+  // graphql.query(
+  //   "tokenTransfers",
+  //   (req: GraphQLRequest<TokenTransfersQueryVariables>, res, ctx) => {
+  //     const dynamicRes: any = { from: { address: "" }, to: { address: "" } };
+  //     const {
+  //       includeERC721Metadata,
+  //       includeFromProfile,
+  //       includeFromReverseProfile,
+  //       includeFromTokensInfo,
+  //       includeToProfile,
+  //       includeToReverseProfile,
+  //       includeToTokensInfo,
+  //       limit,
+  //     } = req.variables;
 
-      if (includeERC721Metadata) {
-        dynamicRes.erc721Metadata = {};
-      }
-      if (includeFromProfile) {
-        dynamicRes.from = { ...dynamicRes.from, profile: {} };
-      }
+  //     if (includeERC721Metadata) {
+  //       dynamicRes.erc721Metadata = {};
+  //     }
+  //     if (includeFromProfile) {
+  //       dynamicRes.from = { ...dynamicRes.from, profile: {} };
+  //     }
 
-      if (includeFromReverseProfile) {
-        dynamicRes.from = { ...dynamicRes.from, reverseProfile: {} };
-      }
+  //     if (includeFromReverseProfile) {
+  //       dynamicRes.from = { ...dynamicRes.from, reverseProfile: {} };
+  //     }
 
-      if (includeFromTokensInfo) {
-        dynamicRes.from = { ...dynamicRes.from, tokens: {} };
-      }
+  //     if (includeFromTokensInfo) {
+  //       dynamicRes.from = { ...dynamicRes.from, tokens: {} };
+  //     }
 
-      if (includeToProfile) {
-        dynamicRes.to = { ...dynamicRes.to, profile: {} };
-      }
+  //     if (includeToProfile) {
+  //       dynamicRes.to = { ...dynamicRes.to, profile: {} };
+  //     }
 
-      if (includeToReverseProfile) {
-        dynamicRes.to = { ...dynamicRes.to, reverseProfile: {} };
-      }
+  //     if (includeToReverseProfile) {
+  //       dynamicRes.to = { ...dynamicRes.to, reverseProfile: {} };
+  //     }
 
-      if (includeToTokensInfo) {
-        dynamicRes.to = { ...dynamicRes.to, tokens: {} };
-      }
+  //     if (includeToTokensInfo) {
+  //       dynamicRes.to = { ...dynamicRes.to, tokens: {} };
+  //     }
 
-      const tokenTransfersRes = new Array(limit).fill(dynamicRes);
-      return res(
-        ctx.data({
-          tokenTransfers: {
-            tokenTransfers: tokenTransfersRes,
-          },
-        })
-      );
-    }
-  ),
+  //     const tokenTransfersRes = new Array(limit).fill(dynamicRes);
+  //     return res(
+  //       ctx.data({
+  //         tokenTransfers: {
+  //           tokenTransfers: tokenTransfersRes,
+  //         },
+  //       })
+  //     );
+  //   }
+  // ),
 ];
