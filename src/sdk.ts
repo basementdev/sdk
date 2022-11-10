@@ -572,7 +572,6 @@ export function getSdk(
     },
   };
 }
-
 export type Sdk = ReturnType<typeof getSdk>;
 export type AddressQueryVariables = Exact<{
   address: Scalars["String"];
@@ -584,7 +583,7 @@ export type AddressQueryVariables = Exact<{
 
 export type AddressQuery = {
   address: {
-    address: any;
+    address: string;
     profile?: {
       name: string;
       avatar: string | null;
@@ -639,8 +638,8 @@ export type AddressQuery = {
       mintTransaction: { blockNumber: number } | null;
       owner: { address: any } | null;
       sales: Array<{ eventIndex: number }> | null;
-    }> | null;
-  } | null;
+    }>;
+  };
 };
 
 export type TokenInfoFragment = {

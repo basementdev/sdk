@@ -12,8 +12,6 @@ export class BasementSDK {
     this.sdk = getSdk(client);
   }
 
-  
-
   /**
    * Queries information about an address
    */
