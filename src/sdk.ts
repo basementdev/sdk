@@ -486,6 +486,36 @@ export const TokenInfoFragmentDoc = gql`
     youtubeUrl
   }
 `;
+export const NonFungibleTokenMintInfoFragmentDoc = gql`
+  fragment NonFungibleTokenMintInfo on NonFungibleToken {
+    mintPrice
+    mintTransaction {
+      blockNumber
+      blockTimestamp
+      effectiveGasPrice
+      events {
+        transactionHash
+      }
+      gas
+      gasPaid
+      gasUsed
+      gasPrice
+      hash
+      id
+      index
+      input
+      value
+      methodId
+      status
+      logs @include(if: $includeMintTransactionLogs) {
+        data
+        logIndex
+        removed
+        topics
+      }
+    }
+  }
+`;
 export const CommonServiceKeysFragmentDoc = gql`
   fragment CommonServiceKeys on Profile {
     github: text(key: "com.github")
@@ -511,6 +541,91 @@ export const GlobalKeysFragmentDoc = gql`
     url: text(key: "url")
   }
 `;
+export const NonFungibleTokenSaleInfoFragmentDoc = gql`
+  fragment NonFungibleTokenSaleInfo on NonFungibleToken {
+    sales {
+      currencyContract {
+        address
+      }
+      eventIndex
+      logIndex
+      maker {
+        address
+        reverseProfile @include(if: $includeMakerReverseProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+      }
+      marketplace
+      marketplaceContract {
+        address
+      }
+      price
+      taker {
+        address
+        reverseProfile @include(if: $includeTakerReverseProfile) {
+          ...CommonServiceKeys
+          ...GlobalKeys
+        }
+      }
+    }
+  }
+  ${CommonServiceKeysFragmentDoc}
+  ${GlobalKeysFragmentDoc}
+`;
+export const NonFungibleTokenOwnerInfoFragmentDoc = gql`
+  fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
+    owner {
+      address
+      profile @include(if: $includeOwnerProfile) {
+        ...GlobalKeys
+        ...CommonServiceKeys
+      }
+      reverseProfile @include(if: $includeOwnerReverseProfile) {
+        ...GlobalKeys
+        ...CommonServiceKeys
+      }
+    }
+  }
+  ${GlobalKeysFragmentDoc}
+  ${CommonServiceKeysFragmentDoc}
+`;
+export const MediaInfoFragmentDoc = gql`
+  fragment MediaInfo on Media {
+    blurhash
+    checksum
+    height
+    width
+    url
+    smallUrl
+    thumbnailUrl
+    largeUrl
+    mimeType
+  }
+`;
+export const NonFungibleTokenMediaInfoFragmentDoc = gql`
+  fragment NonFungibleTokenMediaInfo on NonFungibleToken {
+    animation {
+      ...MediaInfo
+    }
+    image {
+      ...MediaInfo
+    }
+    imageStorageType
+    backgroundColor
+    youtubeUrl
+  }
+  ${MediaInfoFragmentDoc}
+`;
+export const NonFungibleTokenInfoFragmentDoc = gql`
+  fragment NonFungibleTokenInfo on NonFungibleToken {
+    contract
+    description
+    name
+    tokenId
+    externalUrl
+  }
+`;
 export const AddressDocument = gql`
   query address(
     $address: String!
@@ -518,6 +633,13 @@ export const AddressDocument = gql`
     $includeProfile: Boolean = false
     $includeReverseProfile: Boolean = false
     $includeTokens: Boolean = false
+    $includeTokenUri: Boolean = false
+    $includeMintInfo: Boolean = false
+    $includeMediaInfo: Boolean = false
+    $includeMintTransactionLogs: Boolean = false
+    $includeSales: Boolean = false
+    $includeMakerReverseProfile: Boolean = false
+    $includeTakerReverseProfile: Boolean = false
   ) {
     address(address: $address) {
       address
@@ -530,13 +652,50 @@ export const AddressDocument = gql`
         ...CommonServiceKeys
       }
       tokens(limit: $tokensLimit) @include(if: $includeTokens) {
-        ...TokenInfo
+        ...NonFungibleTokenInfo
+        ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+        ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+        ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+        tokenUri @include(if: $includeTokenUri)
       }
     }
   }
   ${GlobalKeysFragmentDoc}
   ${CommonServiceKeysFragmentDoc}
-  ${TokenInfoFragmentDoc}
+  ${NonFungibleTokenInfoFragmentDoc}
+  ${NonFungibleTokenMediaInfoFragmentDoc}
+  ${NonFungibleTokenSaleInfoFragmentDoc}
+  ${NonFungibleTokenMintInfoFragmentDoc}
+`;
+export const TokenDocument = gql`
+  query token(
+    $contract: String!
+    $tokenId: String!
+    $includeOwnerInfo: Boolean = false
+    $includeOwnerProfile: Boolean = false
+    $includeOwnerReverseProfile: Boolean = false
+    $includeTokenUri: Boolean = false
+    $includeMintInfo: Boolean = false
+    $includeMediaInfo: Boolean = false
+    $includeMintTransactionLogs: Boolean = false
+    $includeSales: Boolean = false
+    $includeMakerReverseProfile: Boolean = false
+    $includeTakerReverseProfile: Boolean = false
+  ) {
+    token(contract: $contract, tokenId: $tokenId) {
+      ...NonFungibleTokenInfo
+      ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
+      ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+      ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+      ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+      tokenUri @include(if: $includeTokenUri)
+    }
+  }
+  ${NonFungibleTokenInfoFragmentDoc}
+  ${NonFungibleTokenOwnerInfoFragmentDoc}
+  ${NonFungibleTokenMediaInfoFragmentDoc}
+  ${NonFungibleTokenSaleInfoFragmentDoc}
+  ${NonFungibleTokenMintInfoFragmentDoc}
 `;
 
 export type SdkFunctionWrapper = <T>(
@@ -570,6 +729,20 @@ export function getSdk(
         "query"
       );
     },
+    token(
+      variables: TokenQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<TokenQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TokenQuery>(TokenDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "token",
+        "query"
+      );
+    },
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;
@@ -579,6 +752,13 @@ export type AddressQueryVariables = Exact<{
   includeProfile?: InputMaybe<Scalars["Boolean"]>;
   includeReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokens?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
+  includeMintInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMediaInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMintTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
+  includeSales?: InputMaybe<Scalars["Boolean"]>;
+  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type AddressQuery = {
@@ -623,22 +803,116 @@ export type AddressQuery = {
       telegram: string | null;
     } | null;
     tokens?: Array<{
-      backgroundColor: string | null;
+      tokenUri?: any | null;
       contract: string;
       description: string | null;
-      externalUrl: string | null;
-      imageStorageType: TokenStorageType | null;
-      mintPrice: any;
       name: string | null;
       tokenId: string;
-      tokenUri: any | null;
+      externalUrl: string | null;
+      imageStorageType: TokenStorageType | null;
+      backgroundColor: string | null;
       youtubeUrl: string | null;
-      animation: { blurhash: string | null } | null;
-      image: { blurhash: string | null } | null;
-      mintTransaction: { blockNumber: number } | null;
-      owner: { address: any } | null;
-      sales: Array<{ eventIndex: number }> | null;
-    }>;
+      mintPrice: any;
+      animation: {
+        blurhash: string | null;
+        checksum: string;
+        height: number | null;
+        width: number | null;
+        url: string | null;
+        smallUrl: string | null;
+        thumbnailUrl: string | null;
+        largeUrl: string | null;
+        mimeType: string | null;
+      } | null;
+      image: {
+        blurhash: string | null;
+        checksum: string;
+        height: number | null;
+        width: number | null;
+        url: string | null;
+        smallUrl: string | null;
+        thumbnailUrl: string | null;
+        largeUrl: string | null;
+        mimeType: string | null;
+      } | null;
+      sales: Array<{
+        eventIndex: number;
+        logIndex: number;
+        marketplace: Marketplace;
+        price: any;
+        currencyContract: { address: any } | null;
+        maker: {
+          address: any;
+          reverseProfile?: {
+            name: string;
+            github: string | null;
+            peepeth: string | null;
+            linkedin: string | null;
+            twitter: string | null;
+            keybase: string | null;
+            telegram: string | null;
+            avatar: string | null;
+            description: string | null;
+            display: string | null;
+            email: string | null;
+            keywords: string | null;
+            mail: string | null;
+            notice: string | null;
+            location: string | null;
+            phone: string | null;
+            url: string | null;
+          } | null;
+        };
+        marketplaceContract: { address: any };
+        taker: {
+          address: any;
+          reverseProfile?: {
+            name: string;
+            github: string | null;
+            peepeth: string | null;
+            linkedin: string | null;
+            twitter: string | null;
+            keybase: string | null;
+            telegram: string | null;
+            avatar: string | null;
+            description: string | null;
+            display: string | null;
+            email: string | null;
+            keywords: string | null;
+            mail: string | null;
+            notice: string | null;
+            location: string | null;
+            phone: string | null;
+            url: string | null;
+          } | null;
+        };
+      }> | null;
+      mintTransaction: {
+        blockNumber: number;
+        blockTimestamp: any;
+        effectiveGasPrice: any;
+        gas: number;
+        gasPaid: any;
+        gasUsed: number;
+        gasPrice: any;
+        hash: string;
+        id: string;
+        index: number;
+        input: string | null;
+        value: any;
+        methodId: string | null;
+        status: boolean;
+        events: Array<
+          { transactionHash: string } | { transactionHash: string }
+        >;
+        logs?: Array<{
+          data: string;
+          logIndex: number;
+          removed: boolean;
+          topics: Array<string>;
+        }>;
+      } | null;
+    }> | null;
   };
 };
 
@@ -658,6 +932,348 @@ export type TokenInfoFragment = {
   mintTransaction: { blockNumber: number } | null;
   owner: { address: any } | null;
   sales: Array<{ eventIndex: number }> | null;
+};
+
+export type TokenQueryVariables = Exact<{
+  contract: Scalars["String"];
+  tokenId: Scalars["String"];
+  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
+  includeMintInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMediaInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMintTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
+  includeSales?: InputMaybe<Scalars["Boolean"]>;
+  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type TokenQuery = {
+  token: {
+    tokenUri?: any | null;
+    contract: string;
+    description: string | null;
+    name: string | null;
+    tokenId: string;
+    externalUrl: string | null;
+    imageStorageType: TokenStorageType | null;
+    backgroundColor: string | null;
+    youtubeUrl: string | null;
+    mintPrice: any;
+    owner: {
+      address: any;
+      profile?: {
+        name: string;
+        avatar: string | null;
+        description: string | null;
+        display: string | null;
+        email: string | null;
+        keywords: string | null;
+        mail: string | null;
+        notice: string | null;
+        location: string | null;
+        phone: string | null;
+        url: string | null;
+        github: string | null;
+        peepeth: string | null;
+        linkedin: string | null;
+        twitter: string | null;
+        keybase: string | null;
+        telegram: string | null;
+      } | null;
+      reverseProfile?: {
+        name: string;
+        avatar: string | null;
+        description: string | null;
+        display: string | null;
+        email: string | null;
+        keywords: string | null;
+        mail: string | null;
+        notice: string | null;
+        location: string | null;
+        phone: string | null;
+        url: string | null;
+        github: string | null;
+        peepeth: string | null;
+        linkedin: string | null;
+        twitter: string | null;
+        keybase: string | null;
+        telegram: string | null;
+      } | null;
+    } | null;
+    animation: {
+      blurhash: string | null;
+      checksum: string;
+      height: number | null;
+      width: number | null;
+      url: string | null;
+      smallUrl: string | null;
+      thumbnailUrl: string | null;
+      largeUrl: string | null;
+      mimeType: string | null;
+    } | null;
+    image: {
+      blurhash: string | null;
+      checksum: string;
+      height: number | null;
+      width: number | null;
+      url: string | null;
+      smallUrl: string | null;
+      thumbnailUrl: string | null;
+      largeUrl: string | null;
+      mimeType: string | null;
+    } | null;
+    sales: Array<{
+      eventIndex: number;
+      logIndex: number;
+      marketplace: Marketplace;
+      price: any;
+      currencyContract: { address: any } | null;
+      maker: {
+        address: any;
+        reverseProfile?: {
+          name: string;
+          github: string | null;
+          peepeth: string | null;
+          linkedin: string | null;
+          twitter: string | null;
+          keybase: string | null;
+          telegram: string | null;
+          avatar: string | null;
+          description: string | null;
+          display: string | null;
+          email: string | null;
+          keywords: string | null;
+          mail: string | null;
+          notice: string | null;
+          location: string | null;
+          phone: string | null;
+          url: string | null;
+        } | null;
+      };
+      marketplaceContract: { address: any };
+      taker: {
+        address: any;
+        reverseProfile?: {
+          name: string;
+          github: string | null;
+          peepeth: string | null;
+          linkedin: string | null;
+          twitter: string | null;
+          keybase: string | null;
+          telegram: string | null;
+          avatar: string | null;
+          description: string | null;
+          display: string | null;
+          email: string | null;
+          keywords: string | null;
+          mail: string | null;
+          notice: string | null;
+          location: string | null;
+          phone: string | null;
+          url: string | null;
+        } | null;
+      };
+    }> | null;
+    mintTransaction: {
+      blockNumber: number;
+      blockTimestamp: any;
+      effectiveGasPrice: any;
+      gas: number;
+      gasPaid: any;
+      gasUsed: number;
+      gasPrice: any;
+      hash: string;
+      id: string;
+      index: number;
+      input: string | null;
+      value: any;
+      methodId: string | null;
+      status: boolean;
+      events: Array<{ transactionHash: string } | { transactionHash: string }>;
+      logs?: Array<{
+        data: string;
+        logIndex: number;
+        removed: boolean;
+        topics: Array<string>;
+      }>;
+    } | null;
+  } | null;
+};
+
+export type NonFungibleTokenMintInfoFragment = {
+  mintPrice: any;
+  mintTransaction: {
+    blockNumber: number;
+    blockTimestamp: any;
+    effectiveGasPrice: any;
+    gas: number;
+    gasPaid: any;
+    gasUsed: number;
+    gasPrice: any;
+    hash: string;
+    id: string;
+    index: number;
+    input: string | null;
+    value: any;
+    methodId: string | null;
+    status: boolean;
+    events: Array<{ transactionHash: string } | { transactionHash: string }>;
+    logs?: Array<{
+      data: string;
+      logIndex: number;
+      removed: boolean;
+      topics: Array<string>;
+    }>;
+  } | null;
+};
+
+export type NonFungibleTokenSaleInfoFragment = {
+  sales: Array<{
+    eventIndex: number;
+    logIndex: number;
+    marketplace: Marketplace;
+    price: any;
+    currencyContract: { address: any } | null;
+    maker: {
+      address: any;
+      reverseProfile?: {
+        name: string;
+        github: string | null;
+        peepeth: string | null;
+        linkedin: string | null;
+        twitter: string | null;
+        keybase: string | null;
+        telegram: string | null;
+        avatar: string | null;
+        description: string | null;
+        display: string | null;
+        email: string | null;
+        keywords: string | null;
+        mail: string | null;
+        notice: string | null;
+        location: string | null;
+        phone: string | null;
+        url: string | null;
+      } | null;
+    };
+    marketplaceContract: { address: any };
+    taker: {
+      address: any;
+      reverseProfile?: {
+        name: string;
+        github: string | null;
+        peepeth: string | null;
+        linkedin: string | null;
+        twitter: string | null;
+        keybase: string | null;
+        telegram: string | null;
+        avatar: string | null;
+        description: string | null;
+        display: string | null;
+        email: string | null;
+        keywords: string | null;
+        mail: string | null;
+        notice: string | null;
+        location: string | null;
+        phone: string | null;
+        url: string | null;
+      } | null;
+    };
+  }> | null;
+};
+
+export type NonFungibleTokenOwnerInfoFragment = {
+  owner: {
+    address: any;
+    profile?: {
+      name: string;
+      avatar: string | null;
+      description: string | null;
+      display: string | null;
+      email: string | null;
+      keywords: string | null;
+      mail: string | null;
+      notice: string | null;
+      location: string | null;
+      phone: string | null;
+      url: string | null;
+      github: string | null;
+      peepeth: string | null;
+      linkedin: string | null;
+      twitter: string | null;
+      keybase: string | null;
+      telegram: string | null;
+    } | null;
+    reverseProfile?: {
+      name: string;
+      avatar: string | null;
+      description: string | null;
+      display: string | null;
+      email: string | null;
+      keywords: string | null;
+      mail: string | null;
+      notice: string | null;
+      location: string | null;
+      phone: string | null;
+      url: string | null;
+      github: string | null;
+      peepeth: string | null;
+      linkedin: string | null;
+      twitter: string | null;
+      keybase: string | null;
+      telegram: string | null;
+    } | null;
+  } | null;
+};
+
+export type NonFungibleTokenMediaInfoFragment = {
+  imageStorageType: TokenStorageType | null;
+  backgroundColor: string | null;
+  youtubeUrl: string | null;
+  animation: {
+    blurhash: string | null;
+    checksum: string;
+    height: number | null;
+    width: number | null;
+    url: string | null;
+    smallUrl: string | null;
+    thumbnailUrl: string | null;
+    largeUrl: string | null;
+    mimeType: string | null;
+  } | null;
+  image: {
+    blurhash: string | null;
+    checksum: string;
+    height: number | null;
+    width: number | null;
+    url: string | null;
+    smallUrl: string | null;
+    thumbnailUrl: string | null;
+    largeUrl: string | null;
+    mimeType: string | null;
+  } | null;
+};
+
+export type NonFungibleTokenInfoFragment = {
+  contract: string;
+  description: string | null;
+  name: string | null;
+  tokenId: string;
+  externalUrl: string | null;
+};
+
+export type MediaInfoFragment = {
+  blurhash: string | null;
+  checksum: string;
+  height: number | null;
+  width: number | null;
+  url: string | null;
+  smallUrl: string | null;
+  thumbnailUrl: string | null;
+  largeUrl: string | null;
+  mimeType: string | null;
 };
 
 export type CommonServiceKeysFragment = {

@@ -5,24 +5,24 @@ describe("Basement SDK", () => {
   const TOKEN_ID = "216";
   const sdk = new BasementSDK();
 
-  // test("token query", async () => {
-  //   const { token } = await sdk.token({
-  //     contract: TOKEN_CONTRACT_ADDRESS,
-  //     tokenId: TOKEN_ID,
-  //     include: {
-  //       owner: {
-  //         profile: true,
-  //         reverseProfile: true,
-  //       },
-  //     },
-  //   });
+  test("token query", async () => {
+    const { token } = await sdk.token({
+      contract: TOKEN_CONTRACT_ADDRESS,
+      tokenId: TOKEN_ID,
+      include: {
+        owner: {
+          profile: true,
+          reverseProfile: true,
+        },
+      },
+    });
 
-  //   const keys = Object.keys(token.ownerAddress);
+    const keys = Object.keys(token?.owner);
 
-  //   expect(keys).toEqual(
-  //     expect.arrayContaining(["address", "profile", "reverseProfile"])
-  //   );
-  // });
+    expect(keys).toEqual(
+      expect.arrayContaining(["address", "profile", "reverseProfile"])
+    );
+  });
 
   test("address query", async () => {
     const tokensLimit = 15;
@@ -34,7 +34,6 @@ describe("Basement SDK", () => {
         tokens: { limit: 10 },
       },
     });
-
 
     const keys = Object.keys(data);
     expect(keys).toEqual(

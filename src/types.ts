@@ -1,14 +1,3 @@
-export type TokenFilterOptions = {
-  /** Maximum number of tokens to return  - defaults to `10`  */
-  limit?: number;
-  /** *Experimental* - Whether to remove the results that are suspected to be scams - defaults to `false` */
-};
-
-export type TokensIncludeOption = {
-  /** Whether to include the tokens that the address holds - defaults to `false` */
-  tokens?: TokenFilterOptions;
-};
-
 export type OwnerOptions = {
   /** Whether to include the ENS profile information in the response - defaults to `false` */
   profile?: boolean;
@@ -16,27 +5,46 @@ export type OwnerOptions = {
   reverseProfile?: boolean;
 };
 
-export type AddressQueryIncludeOptions = TokensIncludeOption & OwnerOptions;
+export type SalesFilterProfile = { reverseProfile?: boolean };
 
-export type AddressQueryOptions = {
-  /** hex-address or ENS address */
-  address: string;
-  /** Includes more data in the response */
-  include?: AddressQueryIncludeOptions;
+export type SalesFilterOptions = {
+  maker?: SalesFilterProfile;
+  taker?: SalesFilterProfile;
+};
+
+export type MintFilterOptions = {
+  transactionLogs?: boolean;
 };
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. Having an empty `owner` object will only return the `owner`'s address */
   owner?: OwnerOptions;
+  /**  */
+  media?: boolean;
+  /** */
+  tokenUri?: boolean;
+  /** */
+  sales?: SalesFilterOptions;
+  /** */
+  mint?: MintFilterOptions;
 };
+
+export type TokenFilterOptions = {
+  /** Maximum number of tokens to return  - defaults to `10`  */
+  limit?: number;
+  /** *Experimental* - Whether to remove the results that are suspected to be scams - defaults to `false` */
+} & TokenQueryIncludeOptions;
 
 export type TokenVariables = {
   /** contract hex-address */
   contract: string;
   /** token ID */
   tokenId?: string;
-  /** internal ID */
-  id?: number;
+};
+
+export type TokensIncludeOption = {
+  /** Whether to include the tokens that the address holds - defaults to `false` */
+  tokens?: TokenFilterOptions;
 };
 
 export type TokenQueryBaseOptions = {
@@ -80,4 +88,13 @@ export type TokenTransfersQueryOptions = {
   limit?: number;
   /** Includes more data in the response */
   include?: TokenTransfersQueryIncludeOptions;
+};
+
+export type AddressQueryIncludeOptions = TokensIncludeOption & OwnerOptions;
+
+export type AddressQueryOptions = {
+  /** hex-address or ENS address */
+  address: string;
+  /** Includes more data in the response */
+  include?: AddressQueryIncludeOptions;
 };
