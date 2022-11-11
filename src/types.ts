@@ -1,3 +1,5 @@
+import { TokensFilter, TokensQueryVariables } from "./sdk";
+
 export type OwnerOptions = {
   /** Whether to include the ENS profile information in the response - defaults to `false` */
   profile?: boolean;
@@ -5,34 +7,32 @@ export type OwnerOptions = {
   reverseProfile?: boolean;
 };
 
-export type SalesFilterProfile = { reverseProfile?: boolean };
-
 export type SalesFilterOptions = {
-  maker?: SalesFilterProfile;
-  taker?: SalesFilterProfile;
+  maker?: Required<Pick<OwnerOptions, "reverseProfile">>;
+  taker?: Required<Pick<OwnerOptions, "reverseProfile">>;
 };
 
 export type MintFilterOptions = {
+  /** Whether to include the logs that happened within the transaction - defaults to `false` */
   transactionLogs?: boolean;
 };
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. Having an empty `owner` object will only return the `owner`'s address */
   owner?: OwnerOptions;
-  /**  */
+  /** Whether to include the media attached to the token, like the image, animation, etc - defaults to `false`  */
   media?: boolean;
-  /** */
+  /** Whether to include the tokenUri. This is directly called from the contract and given as is, in JSON format - defaults to `false` */
   tokenUri?: boolean;
-  /** */
+  /** Whether to include sales data. This includes information like the price at which previous sales happened and on which marketplace. Having an empty `sales` object will exclude the taker and maker data  */
   sales?: SalesFilterOptions;
-  /** */
+  /** Whether to include information regarding the token's mint. This includes information like the mint transaction and mint price. Having an empty `mint` object will exclude the logs that happened within the mint transaction */
   mint?: MintFilterOptions;
 };
 
 export type TokenFilterOptions = {
-  /** Maximum number of tokens to return  - defaults to `10`  */
+  /** Maximum number of tokens to return  - defaults to `50`  */
   limit?: number;
-  /** *Experimental* - Whether to remove the results that are suspected to be scams - defaults to `false` */
 } & TokenQueryIncludeOptions;
 
 export type TokenVariables = {
@@ -47,25 +47,27 @@ export type TokensIncludeOption = {
   tokens?: TokenFilterOptions;
 };
 
-export type TokenQueryBaseOptions = {
-  /** Includes more data in the response */
-  include?: TokenQueryIncludeOptions;
-};
-
-export type TokenQueryOptions = TokenQueryBaseOptions & TokenVariables;
-
 export type TokensQueryFilterOptions = {
   /** Filter tokens that satisfy the given contract address */
-  contractAddress: string;
+  ownerAddresses: string;
 };
 
-export type TokensQueryOptions = TokenQueryBaseOptions & {
+export type TokenQueryBaseOptions<T extends "token" | "tokens"> = {
+  /** Includes more data in the response */
+  include?: T extends "token"
+    ? TokenQueryIncludeOptions
+    : TokenQueryIncludeOptions & { totalCount?: boolean };
+};
+
+export type TokenQueryOptions = TokenQueryBaseOptions<"token"> & TokenVariables;
+
+export type TokensQueryOptions = TokenQueryBaseOptions<"tokens"> & {
   /** Filter option(s) */
-  filter: TokensQueryFilterOptions;
-  /** Cursor used for pagination. To go the next page, provide the given cursor from the response */
-  cursor?: string;
-  /** Maximum number of tokens to return - defaults to `10` */
-  limit?: number;
+  filter?: TokensFilter;
+  before?: TokensQueryVariables["before"];
+  after?: TokensQueryVariables["after"];
+  /** Maximum number of tokens to return - defaults to `50` */
+  limit?: TokensQueryVariables["limit"];
 };
 
 export type TokenTransfersQueryFilterOptions = TokensQueryFilterOptions;
@@ -84,7 +86,7 @@ export type TokenTransfersQueryOptions = {
   filter: TokenTransfersQueryFilterOptions;
   /** Cursor used for pagination. To go the next page, provide the given cursor from the response */
   cursor?: string;
-  /** Maximum number of token transfers to return - defaults to `10` */
+  /** Maximum number of token transfers to return - defaults to `50` */
   limit?: number;
   /** Includes more data in the response */
   include?: TokenTransfersQueryIncludeOptions;

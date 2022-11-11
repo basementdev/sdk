@@ -1,6 +1,10 @@
 import { GraphQLClient } from "graphql-request";
-import { AddressQuery, getSdk, TokenQuery } from "./sdk";
-import { AddressQueryOptions, TokenQueryOptions } from "./types";
+import { AddressQuery, getSdk, TokenQuery, TokensQuery } from "./sdk";
+import {
+  AddressQueryOptions,
+  TokenQueryOptions,
+  TokensQueryOptions,
+} from "./types";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
 
@@ -19,7 +23,7 @@ export class BasementSDK {
     contract,
     tokenId,
     include,
-  }: TokenQueryOptions): Promise<TokenQuery> {
+  }: TokenQueryOptions): Promise<TokenQuery["token"]> {
     const includeOwnerInfo = !!include?.owner;
     const includeOwnerProfile = include?.owner?.profile;
     const includeOwnerReverseProfile = include?.owner?.reverseProfile;
@@ -31,7 +35,7 @@ export class BasementSDK {
     const includeMintTransactionLogs = include?.mint?.transactionLogs;
     const includeTokenUri = include?.tokenUri;
 
-    return this.sdk.token({
+    const data = await this.sdk.token({
       contract,
       tokenId,
       includeOwnerInfo,
@@ -45,6 +49,48 @@ export class BasementSDK {
       includeMintTransactionLogs,
       includeTokenUri,
     });
+    return data.token;
+  }
+
+  /**
+   * Query tokens that satisfy the given filter(s)
+   */
+  public async tokens({
+    filter,
+    before,
+    after,
+    include,
+    limit,
+  }: TokensQueryOptions): Promise<TokensQuery["tokens"]> {
+    const includeOwnerInfo = !!include?.owner;
+    const includeOwnerProfile = include?.owner?.profile;
+    const includeOwnerReverseProfile = include?.owner?.reverseProfile;
+    const includeSales = !!include?.sales;
+    const includeMakerReverseProfile = include?.sales?.maker?.reverseProfile;
+    const includeTakerReverseProfile = include?.sales?.taker?.reverseProfile;
+    const includeMediaInfo = include?.media;
+    const includeMintInfo = !!include?.mint;
+    const includeMintTransactionLogs = include?.mint?.transactionLogs;
+    const includeTokenUri = include?.tokenUri;
+    const includeTotalCount = include?.totalCount;
+    const data = await this.sdk.tokens({
+      filter,
+      before,
+      after,
+      includeOwnerInfo,
+      includeOwnerProfile,
+      includeOwnerReverseProfile,
+      includeMakerReverseProfile,
+      includeMediaInfo,
+      includeMintInfo,
+      includeMintTransactionLogs,
+      includeSales,
+      includeTakerReverseProfile,
+      includeTokenUri,
+      includeTotalCount,
+      limit,
+    });
+    return data.tokens;
   }
 
   /**

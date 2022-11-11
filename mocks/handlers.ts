@@ -1,8 +1,8 @@
 import { graphql, GraphQLRequest } from "msw";
 import {
   AddressQueryVariables,
-  // TokenQueryVariables,
-  // TokensQueryVariables,
+  TokenQueryVariables,
+  TokensQueryVariables,
   // TokenTransfersQueryVariables,
 } from "../src/sdk";
 
@@ -33,29 +33,29 @@ function populateOwnerInfo({
 }
 
 export const handlers = [
-  // graphql.query(
-  //   "token",
-  //   (req: GraphQLRequest<TokenQueryVariables>, res, ctx) => {
-  //     const {
-  //       includeOwnerInfo,
-  //       includeOwnerProfile,
-  //       includeOwnerReverseProfile,
-  //     } = req.variables;
+  graphql.query(
+    "token",
+    (req: GraphQLRequest<TokenQueryVariables>, res, ctx) => {
+      const {
+        includeOwnerInfo,
+        includeOwnerProfile,
+        includeOwnerReverseProfile,
+      } = req.variables;
 
-  //     const populatedOwnerInfo = populateOwnerInfo({
-  //       includeOwnerInfo,
-  //       includeOwnerProfile,
-  //       includeOwnerReverseProfile,
-  //     });
-  //     return res(
-  //       ctx.data({
-  //         token: {
-  //           ...populatedOwnerInfo,
-  //         },
-  //       })
-  //     );
-  //   }
-  // ),
+      const populatedOwnerInfo = populateOwnerInfo({
+        includeOwnerInfo,
+        includeOwnerProfile,
+        includeOwnerReverseProfile,
+      });
+      return res(
+        ctx.data({
+          token: {
+            ...populatedOwnerInfo,
+          },
+        })
+      );
+    }
+  ),
 
   graphql.query(
     "address",
@@ -93,33 +93,33 @@ export const handlers = [
     return res(ctx.data({ tokenMetadataRefresh: {} }));
   }),
 
-  // graphql.query(
-  //   "tokens",
-  //   (req: GraphQLRequest<TokensQueryVariables>, res, ctx) => {
-  //     const {
-  //       includeOwnerInfo,
-  //       includeOwnerProfile,
-  //       includeOwnerReverseProfile,
-  //       limit,
-  //     } = req.variables;
+  graphql.query(
+    "tokens",
+    (req: GraphQLRequest<TokensQueryVariables>, res, ctx) => {
+      const {
+        includeOwnerInfo,
+        includeOwnerProfile,
+        includeOwnerReverseProfile,
+        limit,
+      } = req.variables;
 
-  //     const populatedOwnerInfo = populateOwnerInfo({
-  //       includeOwnerInfo,
-  //       includeOwnerProfile,
-  //       includeOwnerReverseProfile,
-  //     });
+      const populatedOwnerInfo = populateOwnerInfo({
+        includeOwnerInfo,
+        includeOwnerProfile,
+        includeOwnerReverseProfile,
+      });
 
-  //     const tokensRes = new Array(limit).fill({ ...populatedOwnerInfo });
+      const tokensRes = new Array(limit).fill({ ...populatedOwnerInfo });
 
-  //     return res(
-  //       ctx.data({
-  //         tokens: {
-  //           tokens: tokensRes,
-  //         },
-  //       })
-  //     );
-  //   }
-  // ),
+      return res(
+        ctx.data({
+          tokens: {
+            tokens: tokensRes,
+          },
+        })
+      );
+    }
+  ),
 
   // graphql.query(
   //   "tokenTransfers",
