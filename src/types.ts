@@ -1,3 +1,5 @@
+import { TokensFilter, TokensQueryVariables } from "./sdk";
+
 export type OwnerOptions = {
   /** Whether to include the ENS profile information in the response - defaults to `false` */
   profile?: boolean;
@@ -29,9 +31,8 @@ export type TokenQueryIncludeOptions = {
 };
 
 export type TokenFilterOptions = {
-  /** Maximum number of tokens to return  - defaults to `10`  */
+  /** Maximum number of tokens to return  - defaults to `50`  */
   limit?: number;
-  /** *Experimental* - Whether to remove the results that are suspected to be scams - defaults to `false` */
 } & TokenQueryIncludeOptions;
 
 export type TokenVariables = {
@@ -46,25 +47,27 @@ export type TokensIncludeOption = {
   tokens?: TokenFilterOptions;
 };
 
-export type TokenQueryBaseOptions = {
-  /** Includes more data in the response */
-  include?: TokenQueryIncludeOptions;
-};
-
-export type TokenQueryOptions = TokenQueryBaseOptions & TokenVariables;
-
 export type TokensQueryFilterOptions = {
   /** Filter tokens that satisfy the given contract address */
-  contractAddress: string;
+  ownerAddresses: string;
 };
 
-export type TokensQueryOptions = TokenQueryBaseOptions & {
+export type TokenQueryBaseOptions<T extends "token" | "tokens"> = {
+  /** Includes more data in the response */
+  include?: T extends "token"
+    ? TokenQueryIncludeOptions
+    : TokenQueryIncludeOptions & { totalCount?: boolean };
+};
+
+export type TokenQueryOptions = TokenQueryBaseOptions<"token"> & TokenVariables;
+
+export type TokensQueryOptions = TokenQueryBaseOptions<"tokens"> & {
   /** Filter option(s) */
-  filter: TokensQueryFilterOptions;
-  /** Cursor used for pagination. To go the next page, provide the given cursor from the response */
-  cursor?: string;
-  /** Maximum number of tokens to return - defaults to `10` */
-  limit?: number;
+  filter?: TokensFilter;
+  before?: TokensQueryVariables["before"];
+  after?: TokensQueryVariables["after"];
+  /** Maximum number of tokens to return - defaults to `50` */
+  limit?: TokensQueryVariables["limit"];
 };
 
 export type TokenTransfersQueryFilterOptions = TokensQueryFilterOptions;
@@ -83,7 +86,7 @@ export type TokenTransfersQueryOptions = {
   filter: TokenTransfersQueryFilterOptions;
   /** Cursor used for pagination. To go the next page, provide the given cursor from the response */
   cursor?: string;
-  /** Maximum number of token transfers to return - defaults to `10` */
+  /** Maximum number of token transfers to return - defaults to `50` */
   limit?: number;
   /** Includes more data in the response */
   include?: TokenTransfersQueryIncludeOptions;

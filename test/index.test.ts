@@ -6,10 +6,17 @@ describe("Basement SDK", () => {
   const sdk = new BasementSDK();
 
   test("token query", async () => {
-    const { token } = await sdk.token({
+    const token = await sdk.token({
       contract: TOKEN_CONTRACT_ADDRESS,
       tokenId: TOKEN_ID,
       include: {
+        media: true,
+        mint: { transactionLogs: true },
+        sales: {
+          maker: { reverseProfile: true },
+          taker: { reverseProfile: true },
+        },
+        tokenUri: true,
         owner: {
           profile: true,
           reverseProfile: true,
@@ -51,25 +58,25 @@ describe("Basement SDK", () => {
   //   expect(tokenMetadataRefresh).toBeDefined;
   // });
 
-  // test("tokens query", async () => {
-  //   const tokensLimit = 5;
-  //   const { tokens } = await sdk.tokens({
-  //     filter: { contractAddress: TOKEN_CONTRACT_ADDRESS },
-  //     limit: tokensLimit,
-  //     include: {
-  //       owner: {
-  //         profile: true,
-  //         reverseProfile: true,
-  //       },
-  //     },
-  //   });
-  //   expect(tokens?.tokens?.length).toBeLessThanOrEqual(tokensLimit);
-  //   const token = tokens?.tokens[0];
-  //   const keys = Object.keys(token?.ownerAddress);
-  //   expect(keys).toEqual(
-  //     expect.arrayContaining(["address", "profile", "reverseProfile"])
-  //   );
-  // });
+  test("tokens query", async () => {
+    const tokensLimit = 5;
+    const { tokens } = await sdk.tokens({
+      filter: { ownerAddresses: ["vitalik.eth"] },
+      limit: tokensLimit,
+      include: {
+        owner: {
+          profile: true,
+          reverseProfile: true,
+        },
+      },
+    });
+    expect(tokens.length).toBeLessThanOrEqual(tokensLimit);
+    const token = tokens[0];
+    const keys = Object.keys(token.owner);
+    expect(keys).toEqual(
+      expect.arrayContaining(["address", "profile", "reverseProfile"])
+    );
+  });
 
   // test("tokenTransfers query", async () => {
   //   const tokenTransfersLimit = 5;

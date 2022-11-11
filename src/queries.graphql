@@ -1,20 +1,3 @@
-# query tokens(
-#   $filter: TokensFilter!
-#   $limit: Int = 10
-#   $cursor: String
-#   $includeOwnerProfile: Boolean = false
-#   $includeOwnerReverseProfile: Boolean = false
-#   $includeOwnerInfo: Boolean = false
-# ) {
-#   tokens(filter: $filter, limit: $limit, cursor: $cursor) {
-#     nextCursor
-#     tokens {
-#       ...TokenInfo
-#       ...TokenOwnerInfo @include(if: $includeOwnerInfo)
-#     }
-#   }
-# }
-
 # query tokenTransfers(
 #   $filter: TransfersFilter!
 #   $limit: Int = 10
@@ -113,34 +96,6 @@ query address(
   }
 }
 
-fragment TokenInfo on NonFungibleToken {
-  animation {
-    blurhash
-  }
-  backgroundColor
-  contract
-  description
-  externalUrl
-  image {
-    blurhash
-  }
-  imageStorageType
-  mintPrice
-  mintTransaction {
-    blockNumber
-  }
-  name
-  owner {
-    address
-  }
-  sales {
-    eventIndex
-  }
-  tokenId
-  tokenUri
-  youtubeUrl
-}
-
 query token(
   $contract: String!
   $tokenId: String!
@@ -162,6 +117,40 @@ query token(
     ...NonFungibleTokenSaleInfo @include(if: $includeSales)
     ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
     tokenUri @include(if: $includeTokenUri)
+  }
+}
+
+query tokens(
+  $filter: TokensFilter
+  $limit: Int = 50
+  $before: String
+  $after: String
+  $includeTotalCount: Boolean = false
+  $includeOwnerInfo: Boolean = false
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeMintInfo: Boolean = false
+  $includeMediaInfo: Boolean = false
+  $includeMintTransactionLogs: Boolean = false
+  $includeSales: Boolean = false
+  $includeMakerReverseProfile: Boolean = false
+  $includeTakerReverseProfile: Boolean = false
+) {
+  tokens(filter: $filter, limit: $limit, before: $before, after: $after) {
+    cursors {
+      before
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    tokens {
+      ...NonFungibleTokenInfo
+      ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
+      ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+      ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+      ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+      tokenUri @include(if: $includeTokenUri)
+    }
   }
 }
 
