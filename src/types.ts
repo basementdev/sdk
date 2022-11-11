@@ -5,27 +5,26 @@ export type OwnerOptions = {
   reverseProfile?: boolean;
 };
 
-export type SalesFilterProfile = { reverseProfile?: boolean };
-
 export type SalesFilterOptions = {
-  maker?: SalesFilterProfile;
-  taker?: SalesFilterProfile;
+  maker?: Required<Pick<OwnerOptions, "reverseProfile">>;
+  taker?: Required<Pick<OwnerOptions, "reverseProfile">>;
 };
 
 export type MintFilterOptions = {
+  /** Whether to include the logs that happened within the transaction - defaults to `false` */
   transactionLogs?: boolean;
 };
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. Having an empty `owner` object will only return the `owner`'s address */
   owner?: OwnerOptions;
-  /**  */
+  /** Whether to include the media attached to the token, like the image, animation, etc - defaults to `false`  */
   media?: boolean;
-  /** */
+  /** Whether to include the tokenUri. This is directly called from the contract and given as is, in JSON format - defaults to `false` */
   tokenUri?: boolean;
-  /** */
+  /** Whether to include sales data. This includes information like the price at which previous sales happened and on which marketplace. Having an empty `sales` object will exclude the taker and maker data  */
   sales?: SalesFilterOptions;
-  /** */
+  /** Whether to include information regarding the token's mint. This includes information like the mint transaction and mint price. Having an empty `mint` object will exclude the logs that happened within the mint transaction */
   mint?: MintFilterOptions;
 };
 
