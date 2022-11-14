@@ -27,11 +27,9 @@
 #       from {
 #         address
 #         profile @include(if: $includeFromProfile) {
-#           ...CommonServiceKeys
 #           ...GlobalKeys
 #         }
 #         reverseProfile @include(if: $includeFromReverseProfile) {
-#           ...CommonServiceKeys
 #           ...GlobalKeys
 #         }
 #         tokens(
@@ -44,11 +42,9 @@
 #       to {
 #         address
 #         profile @include(if: $includeToProfile) {
-#           ...CommonServiceKeys
 #           ...GlobalKeys
 #         }
 #         reverseProfile @include(if: $includeToReverseProfile) {
-#           ...CommonServiceKeys
 #           ...GlobalKeys
 #         }
 #         tokens(
@@ -71,20 +67,20 @@ query address(
   $includeTokenUri: Boolean = false
   $includeMintInfo: Boolean = false
   $includeMediaInfo: Boolean = false
-  $includeMintTransactionLogs: Boolean = false
+  $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
+  $includeTransactionRecipientInfo: Boolean = false
+  $includeTransactionSenderInfo: Boolean = false
 ) {
   address(address: $address) {
     address
     profile @include(if: $includeProfile) {
       ...GlobalKeys
-      ...CommonServiceKeys
     }
     reverseProfile @include(if: $includeReverseProfile) {
       ...GlobalKeys
-      ...CommonServiceKeys
     }
     tokens(limit: $tokensLimit) @include(if: $includeTokens) {
       ...NonFungibleTokenInfo
@@ -105,10 +101,12 @@ query token(
   $includeTokenUri: Boolean = false
   $includeMintInfo: Boolean = false
   $includeMediaInfo: Boolean = false
-  $includeMintTransactionLogs: Boolean = false
+  $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
+  $includeTransactionRecipientInfo: Boolean = false
+  $includeTransactionSenderInfo: Boolean = false
 ) {
   token(contract: $contract, tokenId: $tokenId) {
     ...NonFungibleTokenInfo
@@ -132,7 +130,9 @@ query tokens(
   $includeTokenUri: Boolean = false
   $includeMintInfo: Boolean = false
   $includeMediaInfo: Boolean = false
-  $includeMintTransactionLogs: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionRecipientInfo: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
@@ -154,32 +154,59 @@ query tokens(
   }
 }
 
+query transaction(
+  $hash: String!
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionRecipientInfo: Boolean = false
+  $includeTransactionSenderInfo: Boolean = false
+) {
+  transaction(hash: $hash) {
+    ...TransactionInfo
+  }
+}
+
 fragment NonFungibleTokenMintInfo on NonFungibleToken {
   mintPrice
   mintTransaction {
-    blockNumber
-    blockTimestamp
-    effectiveGasPrice
-    events {
-      transactionHash
+    ...TransactionInfo
+  }
+}
+
+fragment TransactionInfo on Transaction {
+  blockNumber
+  blockTimestamp
+  effectiveGasPrice
+  events {
+    transactionHash
+  }
+  gas
+  gasPaid
+  gasUsed
+  gasPrice
+  hash
+  id
+  index
+  input
+  from @include(if: $includeTransactionSenderInfo) {
+    address
+    reverseProfile {
+      ...GlobalKeys
     }
-    gas
-    gasPaid
-    gasUsed
-    gasPrice
-    hash
-    id
-    index
-    input
-    value
-    methodId
-    status
-    logs @include(if: $includeMintTransactionLogs) {
-      data
-      logIndex
-      removed
-      topics
+  }
+  to @include(if: $includeTransactionRecipientInfo) {
+    address
+    reverseProfile {
+      ...GlobalKeys
     }
+  }
+  value
+  methodId
+  status
+  logs @include(if: $includeTransactionLogs) {
+    data
+    logIndex
+    removed
+    topics
   }
 }
 
@@ -193,7 +220,6 @@ fragment NonFungibleTokenSaleInfo on NonFungibleToken {
     maker {
       address
       reverseProfile @include(if: $includeMakerReverseProfile) {
-        ...CommonServiceKeys
         ...GlobalKeys
       }
     }
@@ -205,7 +231,6 @@ fragment NonFungibleTokenSaleInfo on NonFungibleToken {
     taker {
       address
       reverseProfile @include(if: $includeTakerReverseProfile) {
-        ...CommonServiceKeys
         ...GlobalKeys
       }
     }
@@ -217,11 +242,9 @@ fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
     address
     profile @include(if: $includeOwnerProfile) {
       ...GlobalKeys
-      ...CommonServiceKeys
     }
     reverseProfile @include(if: $includeOwnerReverseProfile) {
       ...GlobalKeys
-      ...CommonServiceKeys
     }
   }
 }
@@ -258,25 +281,7 @@ fragment MediaInfo on Media {
   mimeType
 }
 
-fragment CommonServiceKeys on Profile {
-  github: text(key: "com.github")
-  peepeth: text(key: "com.peepeth")
-  linkedin: text(key: "com.linkedin")
-  twitter: text(key: "com.twitter")
-  keybase: text(key: "io.keybase")
-  telegram: text(key: "org.telegram")
-}
-
 fragment GlobalKeys on Profile {
   name
   avatar: text(key: "avatar")
-  description: text(key: "description")
-  display: text(key: "display")
-  email: text(key: "email")
-  keywords: text(key: "keywords")
-  mail: text(key: "mail")
-  notice: text(key: "notice")
-  location: text(key: "location")
-  phone: text(key: "phone")
-  url: text(key: "url")
 }
