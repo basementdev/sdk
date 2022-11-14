@@ -1,4 +1,8 @@
-import { TokensFilter, TokensQueryVariables } from "./sdk";
+import {
+  TokensFilter,
+  TokensQueryVariables,
+  TransactionsQueryVariables,
+} from "./sdk";
 
 // https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
@@ -8,6 +12,18 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
   {
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
+
+/**
+ * Generates the include depending if the query is meant for retrieving a single or multiple objects
+ */
+export type GenerateIncludeQueryOptions<
+  K,
+  T extends "single" | "multiple",
+  Extra = { totalCount?: boolean }
+> = {
+  /** Includes more data in the response */
+  include?: T extends "single" ? K : K & Extra;
+};
 
 export type IncludeFullProfileOptions = {
   /** Whether to include the ENS profile information in the response - defaults to `false` */
@@ -66,19 +82,18 @@ export type TokensQueryFilterOptions = {
   ownerAddresses: string;
 };
 
-export type TokenQueryBaseOptions<T extends "token" | "tokens"> = {
-  /** Includes more data in the response */
-  include?: T extends "token"
-    ? TokenQueryIncludeOptions
-    : TokenQueryIncludeOptions & { totalCount?: boolean };
-};
+export type TokenQueryOptions = GenerateIncludeQueryOptions<
+  TokenQueryIncludeOptions,
+  "single"
+> &
+  TokenVariables;
 
-export type TokenQueryOptions = TokenQueryBaseOptions<"token"> & TokenVariables;
-
-export type TokensQueryOptions = TokenQueryBaseOptions<"tokens"> & {
+export type TokensQueryOptions = GenerateIncludeQueryOptions<
+  TokenQueryIncludeOptions,
+  "multiple"
+> & {
   /** Filter option(s) */
   filter?: TokensFilter;
-  before?: TokensQueryVariables["before"];
   after?: TokensQueryVariables["after"];
   /** Maximum number of tokens to return - defaults to `50` */
   limit?: TokensQueryVariables["limit"];
@@ -126,4 +141,13 @@ export type TransactionQueryOptions = {
   /** Transaction hash */
   hash: string;
   include?: TransactionQueryIncludeOptions;
+};
+
+export type TransactionsQueryOptions = GenerateIncludeQueryOptions<
+  TransactionQueryIncludeOptions,
+  "multiple",
+  { totalCount?: boolean; reversed?: boolean }
+> & {
+  filter: TransactionsQueryVariables["filter"];
+  after?: TransactionsQueryVariables["after"];
 };

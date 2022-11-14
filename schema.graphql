@@ -55,7 +55,7 @@ type Media {
   "An arbitrary checksum for this media, useful for caching"
   checksum: String!
 
-  "Blurhash for showing a gradient while images are fetching, uses formatting from https:\/\/blurhash.io"
+  "Blurhash for showing a gradient while images are fetching, uses formatting from https://blurhash.io"
   blurhash: String
 
   "Original file stored on Basement's cdn"
@@ -195,18 +195,52 @@ scalar LogTopic
 type RootQueryType {
   address(address: String!): Address
 
-  transfers(filter: TransfersFilter, after: String, before: String, limit: Int): TransferPage!
+  transfers(
+    filter: TransfersFilter
+    after: String
+    before: String
+    limit: Int
+  ): TransferPage!
 
   token(contract: String!, tokenId: String!): NonFungibleToken
 
-  tokens(filter: TokensFilter, after: String, before: String, limit: Int): TokensPage!
+  tokens(
+    filter: TokensFilter
+    after: String
+    before: String
+    limit: Int
+  ): TokensPage!
 
   "Query a transaction"
   transaction(hash: String!): Transaction
 
-  transactionLogs(filter: TransactionLogFilter, after: String, before: String, limit: Int): TransactionLogPage
+  transactionLogs(
+    filter: TransactionLogFilter
 
-  transactions(filter: TransactionFilter, after: String, before: String, limit: Int): TransactionPage
+    after: String
+
+    before: String
+
+    "The number of items to return in one page"
+    limit: Int
+
+    "Whether to reverse the default sort order of the underlying list"
+    reversed: Boolean
+  ): TransactionLogPage
+
+  transactions(
+    filter: TransactionFilter
+
+    after: String
+
+    before: String
+
+    "The number of items to return in one page"
+    limit: Int
+
+    "Whether to reverse the default sort order of the underlying list"
+    reversed: Boolean
+  ): TransactionPage
 }
 
 type TransactionLogPage {
@@ -358,7 +392,7 @@ type Profile {
 
   "Returns any text record stored in ENS with the given key."
   text(
-    "Key to return a text record for. For common keys, see: https:\/\/docs.ens.domains\/ens-improvement-proposals\/ensip-5-text-records#global-keys"
+    "Key to return a text record for. For common keys, see: https://docs.ens.domains/ens-improvement-proposals/ensip-5-text-records#global-keys"
     key: String!
   ): String
 }
