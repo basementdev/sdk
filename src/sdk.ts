@@ -481,13 +481,13 @@ export const TransactionInfoFragmentDoc = gql`
     id
     index
     input
-    from @include(if: $includeTransactionSenderInfo) {
+    from @include(if: $includeTransactionSender) {
       address
       reverseProfile {
         ...GlobalKeys
       }
     }
-    to @include(if: $includeTransactionRecipientInfo) {
+    to @include(if: $includeTransactionRecipient) {
       address
       reverseProfile {
         ...GlobalKeys
@@ -601,14 +601,14 @@ export const AddressDocument = gql`
     $includeReverseProfile: Boolean = false
     $includeTokens: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMintInfo: Boolean = false
-    $includeMediaInfo: Boolean = false
+    $includeMint: Boolean = false
+    $includeMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeSales: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
-    $includeTransactionRecipientInfo: Boolean = false
-    $includeTransactionSenderInfo: Boolean = false
+    $includeTransactionRecipient: Boolean = false
+    $includeTransactionSender: Boolean = false
   ) {
     address(address: $address) {
       address
@@ -620,9 +620,9 @@ export const AddressDocument = gql`
       }
       tokens(limit: $tokensLimit) @include(if: $includeTokens) {
         ...NonFungibleTokenInfo
-        ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+        ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
         ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-        ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+        ...NonFungibleTokenMintInfo @include(if: $includeMint)
         tokenUri @include(if: $includeTokenUri)
       }
     }
@@ -637,25 +637,25 @@ export const TokenDocument = gql`
   query token(
     $contract: String!
     $tokenId: String!
-    $includeOwnerInfo: Boolean = false
+    $includeOwner: Boolean = false
     $includeOwnerProfile: Boolean = false
     $includeOwnerReverseProfile: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMintInfo: Boolean = false
-    $includeMediaInfo: Boolean = false
+    $includeMint: Boolean = false
+    $includeMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeSales: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
-    $includeTransactionRecipientInfo: Boolean = false
-    $includeTransactionSenderInfo: Boolean = false
+    $includeTransactionRecipient: Boolean = false
+    $includeTransactionSender: Boolean = false
   ) {
     token(contract: $contract, tokenId: $tokenId) {
       ...NonFungibleTokenInfo
-      ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
-      ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+      ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+      ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
       ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-      ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+      ...NonFungibleTokenMintInfo @include(if: $includeMint)
       tokenUri @include(if: $includeTokenUri)
     }
   }
@@ -671,15 +671,15 @@ export const TokensDocument = gql`
     $limit: Int = 50
     $after: String
     $includeTotalCount: Boolean = false
-    $includeOwnerInfo: Boolean = false
+    $includeOwner: Boolean = false
     $includeOwnerProfile: Boolean = false
     $includeOwnerReverseProfile: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMintInfo: Boolean = false
-    $includeMediaInfo: Boolean = false
+    $includeMint: Boolean = false
+    $includeMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
-    $includeTransactionSenderInfo: Boolean = false
-    $includeTransactionRecipientInfo: Boolean = false
+    $includeTransactionSender: Boolean = false
+    $includeTransactionRecipient: Boolean = false
     $includeSales: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
@@ -691,10 +691,10 @@ export const TokensDocument = gql`
       totalCount @include(if: $includeTotalCount)
       tokens {
         ...NonFungibleTokenInfo
-        ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
-        ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+        ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+        ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
         ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-        ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+        ...NonFungibleTokenMintInfo @include(if: $includeMint)
         tokenUri @include(if: $includeTokenUri)
       }
     }
@@ -709,8 +709,8 @@ export const TransactionDocument = gql`
   query transaction(
     $hash: String!
     $includeTransactionLogs: Boolean = false
-    $includeTransactionRecipientInfo: Boolean = false
-    $includeTransactionSenderInfo: Boolean = false
+    $includeTransactionRecipient: Boolean = false
+    $includeTransactionSender: Boolean = false
   ) {
     transaction(hash: $hash) {
       ...TransactionInfo
@@ -725,8 +725,8 @@ export const TransactionsDocument = gql`
     $limit: Int = 50
     $reversed: Boolean = false
     $includeTotalCount: Boolean = false
-    $includeTransactionRecipientInfo: Boolean = false
-    $includeTransactionSenderInfo: Boolean = false
+    $includeTransactionRecipient: Boolean = false
+    $includeTransactionSender: Boolean = false
     $includeTransactionLogs: Boolean = false
   ) {
     transactions(
@@ -744,6 +744,51 @@ export const TransactionsDocument = gql`
       }
     }
   }
+  ${TransactionInfoFragmentDoc}
+`;
+export const TransactionLogsDocument = gql`
+  query transactionLogs(
+    $after: String
+    $includeTotalCount: Boolean = false
+    $filter: TransactionLogFilter
+    $limit: Int = 50
+    $reversed: Boolean = false
+    $includeTransactionRecipient: Boolean = false
+    $includeTransactionSender: Boolean = false
+    $includeTransactionLogs: Boolean = false
+    $includeContractReverseProfile: Boolean = false
+    $includeTransaction: Boolean = false
+  ) {
+    transactionLogs(
+      after: $after
+      limit: $limit
+      filter: $filter
+      reversed: $reversed
+    ) {
+      cursors {
+        after
+      }
+      totalCount @include(if: $includeTotalCount)
+      transactionLogs {
+        address {
+          address
+          reverseProfile @include(if: $includeContractReverseProfile) {
+            ...GlobalKeys
+          }
+        }
+        data
+        logIndex
+        removed
+        topics
+        transactionHash
+        blockNumber
+        transaction @include(if: $includeTransaction) {
+          ...TransactionInfo
+        }
+      }
+    }
+  }
+  ${GlobalKeysFragmentDoc}
   ${TransactionInfoFragmentDoc}
 `;
 
@@ -834,6 +879,21 @@ export function getSdk(
         "query"
       );
     },
+    transactionLogs(
+      variables?: TransactionLogsQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<TransactionLogsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TransactionLogsQuery>(
+            TransactionLogsDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "transactionLogs",
+        "query"
+      );
+    },
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;
@@ -844,14 +904,14 @@ export type AddressQueryVariables = Exact<{
   includeReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokens?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMintInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeMediaInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type AddressQuery = {
@@ -948,18 +1008,18 @@ export type AddressQuery = {
 export type TokenQueryVariables = Exact<{
   contract: Scalars["String"];
   tokenId: Scalars["String"];
-  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeOwner?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMintInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeMediaInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type TokenQuery = {
@@ -1056,15 +1116,15 @@ export type TokensQueryVariables = Exact<{
   limit?: InputMaybe<Scalars["Int"]>;
   after: InputMaybe<Scalars["String"]>;
   includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
-  includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeOwner?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMintInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeMediaInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
@@ -1168,8 +1228,8 @@ export type TokensQuery = {
 export type TransactionQueryVariables = Exact<{
   hash: Scalars["String"];
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type TransactionQuery = {
@@ -1212,8 +1272,8 @@ export type TransactionsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars["Int"]>;
   reversed?: InputMaybe<Scalars["Boolean"]>;
   includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
-  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
@@ -1251,6 +1311,71 @@ export type TransactionsQuery = {
         removed: boolean;
         topics: Array<string>;
       }>;
+    }>;
+  } | null;
+};
+
+export type TransactionLogsQueryVariables = Exact<{
+  after: InputMaybe<Scalars["String"]>;
+  includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
+  filter: InputMaybe<TransactionLogFilter>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  reversed?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
+  includeContractReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTransaction?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type TransactionLogsQuery = {
+  transactionLogs: {
+    totalCount?: number;
+    cursors: { after: string | null };
+    transactionLogs: Array<{
+      data: string;
+      logIndex: number;
+      removed: boolean;
+      topics: Array<string>;
+      transactionHash: string;
+      blockNumber: number;
+      address: {
+        address: any;
+        reverseProfile?: { name: string; avatar: string | null } | null;
+      };
+      transaction?: {
+        blockNumber: number;
+        blockTimestamp: any;
+        effectiveGasPrice: any;
+        gas: number;
+        gasPaid: any;
+        gasUsed: number;
+        gasPrice: any;
+        hash: string;
+        id: string;
+        index: number;
+        input: string | null;
+        value: any;
+        methodId: string | null;
+        status: boolean;
+        events: Array<
+          { transactionHash: string } | { transactionHash: string }
+        >;
+        from?: {
+          address: any;
+          reverseProfile: { name: string; avatar: string | null } | null;
+        };
+        to?: {
+          address: any;
+          reverseProfile: { name: string; avatar: string | null } | null;
+        } | null;
+        logs?: Array<{
+          data: string;
+          logIndex: number;
+          removed: boolean;
+          topics: Array<string>;
+        }>;
+      };
     }>;
   } | null;
 };
