@@ -1,12 +1,57 @@
 import { GraphQLClient } from "graphql-request";
-import { AddressQuery, getSdk, TokenQuery, TokensQuery } from "./sdk";
+import {
+  AddressQuery,
+  getSdk,
+  TokenQuery,
+  TokensQuery,
+  TransactionQuery,
+} from "./sdk";
 import {
   AddressQueryOptions,
+  TokenQueryIncludeOptions,
   TokenQueryOptions,
   TokensQueryOptions,
+  TransactionQueryOptions,
 } from "./types";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
+
+function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
+  const includeOwnerInfo = !!opts.owner;
+  const includeMintInfo = !!opts.mint;
+  const includeSales = !!opts.sales;
+  const includeTokenUri = opts.tokenUri;
+  const includeMediaInfo = opts.media;
+  let includeMakerReverseProfile = false;
+  let includeTakerReverseProfile = false;
+  if (typeof opts.sales !== "boolean" && typeof opts.sales !== "undefined") {
+    includeMakerReverseProfile = !!opts.sales.maker;
+    includeTakerReverseProfile = !!opts.sales.taker;
+  }
+  let includeTransactionLogs = false;
+  if (typeof opts.mint !== "boolean" && typeof opts.mint !== "undefined") {
+    includeTransactionLogs = opts.mint.transactionLogs;
+  }
+  let includeOwnerProfile = false;
+  let includeOwnerReverseProfile = false;
+  if (typeof opts.owner !== "boolean" && typeof opts.owner !== "undefined") {
+    includeOwnerProfile = opts.owner.profile;
+    includeOwnerReverseProfile = opts.owner.reverseProfile;
+  }
+
+  return {
+    includeOwnerInfo,
+    includeMintInfo,
+    includeTokenUri,
+    includeSales,
+    includeMediaInfo,
+    includeMakerReverseProfile,
+    includeTakerReverseProfile,
+    includeTransactionLogs,
+    includeOwnerProfile,
+    includeOwnerReverseProfile,
+  };
+}
 
 export class BasementSDK {
   private sdk: ReturnType<typeof getSdk>;
@@ -24,30 +69,10 @@ export class BasementSDK {
     tokenId,
     include,
   }: TokenQueryOptions): Promise<TokenQuery["token"]> {
-    const includeOwnerInfo = !!include?.owner;
-    const includeOwnerProfile = include?.owner?.profile;
-    const includeOwnerReverseProfile = include?.owner?.reverseProfile;
-    const includeSales = !!include?.sales;
-    const includeMakerReverseProfile = include?.sales?.maker?.reverseProfile;
-    const includeTakerReverseProfile = include?.sales?.taker?.reverseProfile;
-    const includeMediaInfo = include?.media;
-    const includeMintInfo = !!include?.mint;
-    const includeMintTransactionLogs = include?.mint?.transactionLogs;
-    const includeTokenUri = include?.tokenUri;
-
     const data = await this.sdk.token({
       contract,
       tokenId,
-      includeOwnerInfo,
-      includeOwnerProfile,
-      includeOwnerReverseProfile,
-      includeSales,
-      includeTakerReverseProfile,
-      includeMakerReverseProfile,
-      includeMediaInfo,
-      includeMintInfo,
-      includeMintTransactionLogs,
-      includeTokenUri,
+      ...parseTokenIncludeOptions(include),
     });
     return data.token;
   }
@@ -62,33 +87,14 @@ export class BasementSDK {
     include,
     limit,
   }: TokensQueryOptions): Promise<TokensQuery["tokens"]> {
-    const includeOwnerInfo = !!include?.owner;
-    const includeOwnerProfile = include?.owner?.profile;
-    const includeOwnerReverseProfile = include?.owner?.reverseProfile;
-    const includeSales = !!include?.sales;
-    const includeMakerReverseProfile = include?.sales?.maker?.reverseProfile;
-    const includeTakerReverseProfile = include?.sales?.taker?.reverseProfile;
-    const includeMediaInfo = include?.media;
-    const includeMintInfo = !!include?.mint;
-    const includeMintTransactionLogs = include?.mint?.transactionLogs;
-    const includeTokenUri = include?.tokenUri;
     const includeTotalCount = include?.totalCount;
     const data = await this.sdk.tokens({
       filter,
       before,
       after,
-      includeOwnerInfo,
-      includeOwnerProfile,
-      includeOwnerReverseProfile,
-      includeMakerReverseProfile,
-      includeMediaInfo,
-      includeMintInfo,
-      includeMintTransactionLogs,
-      includeSales,
-      includeTakerReverseProfile,
-      includeTokenUri,
       includeTotalCount,
       limit,
+      ...parseTokenIncludeOptions(include),
     });
     return data.tokens;
   }
@@ -104,30 +110,31 @@ export class BasementSDK {
     const tokensLimit = include?.tokens?.limit;
     const includeProfile = include?.profile;
     const includeReverseProfile = include?.reverseProfile;
-    const includeSales = !!include?.tokens?.sales;
-    const includeMediaInfo = include?.tokens?.media;
-    const includeMakerReverseProfile =
-      include?.tokens?.sales?.maker?.reverseProfile;
-    const includeTakerReverseProfile =
-      include?.tokens?.sales?.taker?.reverseProfile;
-    const includeMintInfo = !!include?.tokens?.mint;
-    const includeMintTransactionLogs = include?.tokens?.mint?.transactionLogs;
-    const includeTokenUri = include?.tokens?.tokenUri;
     const data = await this.sdk.address({
       address,
       includeProfile,
       includeReverseProfile,
       includeTokens,
       tokensLimit,
-      includeSales,
-      includeMediaInfo,
-      includeMintInfo,
-      includeMintTransactionLogs,
-      includeTokenUri,
-      includeMakerReverseProfile,
-      includeTakerReverseProfile,
+      ...parseTokenIncludeOptions(include.tokens),
     });
 
     return data.address;
+  }
+
+  public async transaction({
+    hash,
+    include,
+  }: TransactionQueryOptions): Promise<TransactionQuery["transaction"]> {
+    const includeTransactionLogs = include?.logs;
+    const includeTransactionRecipientInfo = !!include?.recipient;
+    const includeTransactionSenderInfo = !!include?.sender;
+    const data = await this.sdk.transaction({
+      hash,
+      includeTransactionLogs,
+      includeTransactionRecipientInfo,
+      includeTransactionSenderInfo,
+    });
+    return data.transaction;
   }
 }
