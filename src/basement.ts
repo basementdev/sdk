@@ -11,7 +11,9 @@ import {
   TokenQueryIncludeOptions,
   TokenQueryOptions,
   TokensQueryOptions,
+  TransactionQueryIncludeOptions,
   TransactionQueryOptions,
+  TransactionsQueryOptions,
 } from "./types";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
@@ -53,6 +55,17 @@ function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
   };
 }
 
+function parseTransactionIncludeOptions(opts?: TransactionQueryIncludeOptions) {
+  const includeTransactionLogs = opts?.logs;
+  const includeTransactionRecipientInfo = !!opts?.recipient;
+  const includeTransactionSenderInfo = !!opts?.sender;
+  return {
+    includeTransactionLogs,
+    includeTransactionRecipientInfo,
+    includeTransactionSenderInfo,
+  };
+}
+
 export class BasementSDK {
   private sdk: ReturnType<typeof getSdk>;
 
@@ -82,7 +95,6 @@ export class BasementSDK {
    */
   public async tokens({
     filter,
-    before,
     after,
     include,
     limit,
@@ -90,7 +102,6 @@ export class BasementSDK {
     const includeTotalCount = include?.totalCount;
     const data = await this.sdk.tokens({
       filter,
-      before,
       after,
       includeTotalCount,
       limit,
@@ -126,15 +137,23 @@ export class BasementSDK {
     hash,
     include,
   }: TransactionQueryOptions): Promise<TransactionQuery["transaction"]> {
-    const includeTransactionLogs = include?.logs;
-    const includeTransactionRecipientInfo = !!include?.recipient;
-    const includeTransactionSenderInfo = !!include?.sender;
-    const data = await this.sdk.transaction({
+    const { transaction } = await this.sdk.transaction({
       hash,
-      includeTransactionLogs,
-      includeTransactionRecipientInfo,
-      includeTransactionSenderInfo,
+      ...parseTransactionIncludeOptions(include),
     });
-    return data.transaction;
+    return transaction;
+  }
+
+  public async transactions({
+    filter,
+    after,
+    include,
+  }: TransactionsQueryOptions) {
+    const { transactions } = await this.sdk.transactions({
+      filter,
+      after,
+      ...parseTransactionIncludeOptions(include),
+    });
+    return transactions;
   }
 }

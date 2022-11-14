@@ -121,7 +121,6 @@ query token(
 query tokens(
   $filter: TokensFilter
   $limit: Int = 50
-  $before: String
   $after: String
   $includeTotalCount: Boolean = false
   $includeOwnerInfo: Boolean = false
@@ -137,9 +136,8 @@ query tokens(
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
 ) {
-  tokens(filter: $filter, limit: $limit, before: $before, after: $after) {
+  tokens(filter: $filter, limit: $limit, after: $after) {
     cursors {
-      before
       after
     }
     totalCount @include(if: $includeTotalCount)
@@ -162,6 +160,32 @@ query transaction(
 ) {
   transaction(hash: $hash) {
     ...TransactionInfo
+  }
+}
+
+query transactions(
+  $filter: TransactionFilter
+  $after: String
+  $limit: Int = 50
+  $reversed: Boolean = false
+  $includeTotalCount: Boolean = false
+  $includeTransactionRecipientInfo: Boolean = false
+  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionLogs: Boolean = false
+) {
+  transactions(
+    filter: $filter
+    after: $after
+    limit: $limit
+    reversed: $reversed
+  ) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    transactions {
+      ...TransactionInfo
+    }
   }
 }
 

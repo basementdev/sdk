@@ -264,6 +264,7 @@ export type RootQueryTypeTransactionLogsArgs = {
   before: InputMaybe<Scalars["String"]>;
   filter: InputMaybe<TransactionLogFilter>;
   limit: InputMaybe<Scalars["Int"]>;
+  reversed: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type RootQueryTypeTransactionsArgs = {
@@ -271,6 +272,7 @@ export type RootQueryTypeTransactionsArgs = {
   before: InputMaybe<Scalars["String"]>;
   filter: InputMaybe<TransactionFilter>;
   limit: InputMaybe<Scalars["Int"]>;
+  reversed: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type RootQueryTypeTransfersArgs = {
@@ -667,7 +669,6 @@ export const TokensDocument = gql`
   query tokens(
     $filter: TokensFilter
     $limit: Int = 50
-    $before: String
     $after: String
     $includeTotalCount: Boolean = false
     $includeOwnerInfo: Boolean = false
@@ -683,9 +684,8 @@ export const TokensDocument = gql`
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
   ) {
-    tokens(filter: $filter, limit: $limit, before: $before, after: $after) {
+    tokens(filter: $filter, limit: $limit, after: $after) {
       cursors {
-        before
         after
       }
       totalCount @include(if: $includeTotalCount)
@@ -714,6 +714,34 @@ export const TransactionDocument = gql`
   ) {
     transaction(hash: $hash) {
       ...TransactionInfo
+    }
+  }
+  ${TransactionInfoFragmentDoc}
+`;
+export const TransactionsDocument = gql`
+  query transactions(
+    $filter: TransactionFilter
+    $after: String
+    $limit: Int = 50
+    $reversed: Boolean = false
+    $includeTotalCount: Boolean = false
+    $includeTransactionRecipientInfo: Boolean = false
+    $includeTransactionSenderInfo: Boolean = false
+    $includeTransactionLogs: Boolean = false
+  ) {
+    transactions(
+      filter: $filter
+      after: $after
+      limit: $limit
+      reversed: $reversed
+    ) {
+      cursors {
+        after
+      }
+      totalCount @include(if: $includeTotalCount)
+      transactions {
+        ...TransactionInfo
+      }
     }
   }
   ${TransactionInfoFragmentDoc}
@@ -789,6 +817,20 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "transaction",
+        "query"
+      );
+    },
+    transactions(
+      variables?: TransactionsQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<TransactionsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TransactionsQuery>(TransactionsDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "transactions",
         "query"
       );
     },
@@ -1012,7 +1054,6 @@ export type TokenQuery = {
 export type TokensQueryVariables = Exact<{
   filter: InputMaybe<TokensFilter>;
   limit?: InputMaybe<Scalars["Int"]>;
-  before: InputMaybe<Scalars["String"]>;
   after: InputMaybe<Scalars["String"]>;
   includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerInfo?: InputMaybe<Scalars["Boolean"]>;
@@ -1032,7 +1073,7 @@ export type TokensQueryVariables = Exact<{
 export type TokensQuery = {
   tokens: {
     totalCount?: number;
-    cursors: { before: string | null; after: string | null };
+    cursors: { after: string | null };
     tokens: Array<{
       tokenUri?: any | null;
       contract: string;
@@ -1161,6 +1202,55 @@ export type TransactionQuery = {
       logIndex: number;
       removed: boolean;
       topics: Array<string>;
+    }>;
+  } | null;
+};
+
+export type TransactionsQueryVariables = Exact<{
+  filter: InputMaybe<TransactionFilter>;
+  after: InputMaybe<Scalars["String"]>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  reversed?: InputMaybe<Scalars["Boolean"]>;
+  includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionRecipientInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionSenderInfo?: InputMaybe<Scalars["Boolean"]>;
+  includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type TransactionsQuery = {
+  transactions: {
+    totalCount?: number;
+    cursors: { after: string | null };
+    transactions: Array<{
+      blockNumber: number;
+      blockTimestamp: any;
+      effectiveGasPrice: any;
+      gas: number;
+      gasPaid: any;
+      gasUsed: number;
+      gasPrice: any;
+      hash: string;
+      id: string;
+      index: number;
+      input: string | null;
+      value: any;
+      methodId: string | null;
+      status: boolean;
+      events: Array<{ transactionHash: string } | { transactionHash: string }>;
+      from?: {
+        address: any;
+        reverseProfile: { name: string; avatar: string | null } | null;
+      };
+      to?: {
+        address: any;
+        reverseProfile: { name: string; avatar: string | null } | null;
+      } | null;
+      logs?: Array<{
+        data: string;
+        logIndex: number;
+        removed: boolean;
+        topics: Array<string>;
+      }>;
     }>;
   } | null;
 };
