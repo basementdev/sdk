@@ -1,6 +1,7 @@
 import {
   TokensFilter,
   TokensQueryVariables,
+  TransactionLogsQueryVariables,
   TransactionsQueryVariables,
 } from "./sdk";
 
@@ -143,11 +144,25 @@ export type TransactionQueryOptions = {
   include?: TransactionQueryIncludeOptions;
 };
 
-export type TransactionsQueryOptions = GenerateIncludeQueryOptions<
-  TransactionQueryIncludeOptions,
-  "multiple",
-  { totalCount?: boolean; reversed?: boolean }
-> & {
-  filter: TransactionsQueryVariables["filter"];
-  after?: TransactionsQueryVariables["after"];
+export type PluralQueryOptions<K, T> = {
+  filter?: K;
+  after?: string;
+  limit?: number;
+  reversed?: boolean;
+  include?: T & { totalCount?: boolean };
 };
+
+export type TransactionsQueryOptions = PluralQueryOptions<
+  TransactionsQueryVariables["filter"],
+  TransactionQueryIncludeOptions
+>;
+
+export type TransactionLogsQueryIncludeOptions = {
+  contract?: IncludeOnlyReverseProfile | boolean;
+  transaction?: TransactionQueryIncludeOptions | boolean;
+};
+
+export type TransactionLogsQueryOptions = PluralQueryOptions<
+  TransactionLogsQueryVariables["filter"],
+  TransactionLogsQueryIncludeOptions
+>;

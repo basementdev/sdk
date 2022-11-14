@@ -11,6 +11,7 @@ import {
   TokenQueryIncludeOptions,
   TokenQueryOptions,
   TokensQueryOptions,
+  TransactionLogsQueryOptions,
   TransactionQueryIncludeOptions,
   TransactionQueryOptions,
   TransactionsQueryOptions,
@@ -147,13 +148,47 @@ export class BasementSDK {
   public async transactions({
     filter,
     after,
+    limit,
+    reversed,
     include,
   }: TransactionsQueryOptions) {
+    const includeTotalCount = include?.totalCount;
     const { transactions } = await this.sdk.transactions({
+      limit,
+      reversed,
       filter,
       after,
+      includeTotalCount,
       ...parseTransactionIncludeOptions(include),
     });
     return transactions;
+  }
+
+  public async transactionLogs({
+    after,
+    filter,
+    include,
+    limit,
+    reversed,
+  }: TransactionLogsQueryOptions) {
+    const includeTotalCount = include?.totalCount;
+    const includeContractReverseProfile = !!include?.contract;
+    const includeTransaction = !!include.transaction;
+    let transactionOpts = {};
+    if (typeof include?.transaction !== "boolean") {
+      transactionOpts = parseTransactionIncludeOptions(include.transaction);
+    }
+    const { transactionLogs } = await this.sdk.transactionLogs({
+      after,
+      filter,
+      limit,
+      reversed,
+      includeTotalCount,
+      includeContractReverseProfile,
+      includeTransaction,
+      ...transactionOpts,
+      includeTransactionLogs: false,
+    });
+    return transactionLogs;
   }
 }

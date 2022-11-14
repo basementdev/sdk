@@ -65,14 +65,14 @@ query address(
   $includeReverseProfile: Boolean = false
   $includeTokens: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMintInfo: Boolean = false
-  $includeMediaInfo: Boolean = false
+  $includeMint: Boolean = false
+  $includeMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
-  $includeTransactionRecipientInfo: Boolean = false
-  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
 ) {
   address(address: $address) {
     address
@@ -84,9 +84,9 @@ query address(
     }
     tokens(limit: $tokensLimit) @include(if: $includeTokens) {
       ...NonFungibleTokenInfo
-      ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+      ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
       ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-      ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+      ...NonFungibleTokenMintInfo @include(if: $includeMint)
       tokenUri @include(if: $includeTokenUri)
     }
   }
@@ -95,25 +95,25 @@ query address(
 query token(
   $contract: String!
   $tokenId: String!
-  $includeOwnerInfo: Boolean = false
+  $includeOwner: Boolean = false
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMintInfo: Boolean = false
-  $includeMediaInfo: Boolean = false
+  $includeMint: Boolean = false
+  $includeMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
-  $includeTransactionRecipientInfo: Boolean = false
-  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
 ) {
   token(contract: $contract, tokenId: $tokenId) {
     ...NonFungibleTokenInfo
-    ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
-    ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+    ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+    ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
     ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-    ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+    ...NonFungibleTokenMintInfo @include(if: $includeMint)
     tokenUri @include(if: $includeTokenUri)
   }
 }
@@ -123,15 +123,15 @@ query tokens(
   $limit: Int = 50
   $after: String
   $includeTotalCount: Boolean = false
-  $includeOwnerInfo: Boolean = false
+  $includeOwner: Boolean = false
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMintInfo: Boolean = false
-  $includeMediaInfo: Boolean = false
+  $includeMint: Boolean = false
+  $includeMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
-  $includeTransactionSenderInfo: Boolean = false
-  $includeTransactionRecipientInfo: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionRecipient: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
@@ -143,10 +143,10 @@ query tokens(
     totalCount @include(if: $includeTotalCount)
     tokens {
       ...NonFungibleTokenInfo
-      ...NonFungibleTokenOwnerInfo @include(if: $includeOwnerInfo)
-      ...NonFungibleTokenMediaInfo @include(if: $includeMediaInfo)
+      ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+      ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
       ...NonFungibleTokenSaleInfo @include(if: $includeSales)
-      ...NonFungibleTokenMintInfo @include(if: $includeMintInfo)
+      ...NonFungibleTokenMintInfo @include(if: $includeMint)
       tokenUri @include(if: $includeTokenUri)
     }
   }
@@ -155,8 +155,8 @@ query tokens(
 query transaction(
   $hash: String!
   $includeTransactionLogs: Boolean = false
-  $includeTransactionRecipientInfo: Boolean = false
-  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
 ) {
   transaction(hash: $hash) {
     ...TransactionInfo
@@ -169,8 +169,8 @@ query transactions(
   $limit: Int = 50
   $reversed: Boolean = false
   $includeTotalCount: Boolean = false
-  $includeTransactionRecipientInfo: Boolean = false
-  $includeTransactionSenderInfo: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
   $includeTransactionLogs: Boolean = false
 ) {
   transactions(
@@ -185,6 +185,43 @@ query transactions(
     totalCount @include(if: $includeTotalCount)
     transactions {
       ...TransactionInfo
+    }
+  }
+}
+
+query transactionLogs(
+  $after: String
+  $includeTotalCount: Boolean = false
+  $filter: TransactionLogFilter
+  $limit: Int = 50
+  $reversed: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeContractReverseProfile: Boolean = false
+  $includeTransaction: Boolean = false
+) {
+  transactionLogs(after: $after, limit: $limit, filter: $filter, reversed: $reversed) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    transactionLogs {
+      address {
+        address
+        reverseProfile @include(if: $includeContractReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      data
+      logIndex
+      removed
+      topics
+      transactionHash
+      blockNumber
+      transaction @include(if: $includeTransaction) {
+        ...TransactionInfo
+      }
     }
   }
 }
@@ -211,13 +248,13 @@ fragment TransactionInfo on Transaction {
   id
   index
   input
-  from @include(if: $includeTransactionSenderInfo) {
+  from @include(if: $includeTransactionSender) {
     address
     reverseProfile {
       ...GlobalKeys
     }
   }
-  to @include(if: $includeTransactionRecipientInfo) {
+  to @include(if: $includeTransactionRecipient) {
     address
     reverseProfile {
       ...GlobalKeys
