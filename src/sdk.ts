@@ -593,6 +593,11 @@ export const NonFungibleTokenInfoFragmentDoc = gql`
     externalUrl
   }
 `;
+export const NonFungibleTokenRefreshDocument = gql`
+  mutation nonFungibleTokenRefresh($contract: String!, $tokenId: String!) {
+    nonFungibleTokenRefresh(contract: $contract, tokenId: $tokenId)
+  }
+`;
 export const AddressDocument = gql`
   query address(
     $address: String!
@@ -809,6 +814,21 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
+    nonFungibleTokenRefresh(
+      variables: NonFungibleTokenRefreshMutationVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<NonFungibleTokenRefreshMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<NonFungibleTokenRefreshMutation>(
+            NonFungibleTokenRefreshDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "nonFungibleTokenRefresh",
+        "mutation"
+      );
+    },
     address(
       variables: AddressQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
@@ -897,6 +917,15 @@ export function getSdk(
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;
+export type NonFungibleTokenRefreshMutationVariables = Exact<{
+  contract: Scalars["String"];
+  tokenId: Scalars["String"];
+}>;
+
+export type NonFungibleTokenRefreshMutation = {
+  nonFungibleTokenRefresh: string | null;
+};
+
 export type AddressQueryVariables = Exact<{
   address: Scalars["String"];
   tokensLimit?: InputMaybe<Scalars["Int"]>;
