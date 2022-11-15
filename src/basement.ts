@@ -2,6 +2,7 @@ import { GraphQLClient } from "graphql-request";
 import {
   AddressQuery,
   getSdk,
+  NonFungibleTokenRefreshMutationVariables,
   TokenQuery,
   TokensQuery,
   TransactionQuery,
@@ -190,5 +191,16 @@ export class BasementSDK {
       includeTransactionLogs: false,
     });
     return transactionLogs;
+  }
+
+  public async nonFungibleTokenRefresh({
+    contract,
+    tokenId,
+  }: NonFungibleTokenRefreshMutationVariables) {
+    const { nonFungibleTokenRefresh } = await this.sdk.nonFungibleTokenRefresh({
+      contract,
+      tokenId,
+    });
+    return nonFungibleTokenRefresh;
   }
 }
