@@ -16,9 +16,17 @@ import {
   TransactionQueryIncludeOptions,
   TransactionQueryOptions,
   TransactionsQueryOptions,
+  TransfersQueryOptions,
 } from "./types";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
+
+function isPropertyIncluded<T>(
+  obj: T,
+  prop: keyof Exclude<T, boolean>
+): boolean {
+  return !!obj?.[prop as keyof T];
+}
 
 function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
   const includeOwnerInfo = !!opts.owner;
@@ -26,22 +34,17 @@ function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
   const includeSales = !!opts.sales;
   const includeTokenUri = opts.tokenUri;
   const includeMediaInfo = opts.media;
-  let includeMakerReverseProfile = false;
-  let includeTakerReverseProfile = false;
-  if (typeof opts.sales !== "boolean" && typeof opts.sales !== "undefined") {
-    includeMakerReverseProfile = !!opts.sales.maker;
-    includeTakerReverseProfile = !!opts.sales.taker;
-  }
-  let includeTransactionLogs = false;
-  if (typeof opts.mint !== "boolean" && typeof opts.mint !== "undefined") {
-    includeTransactionLogs = opts.mint.transactionLogs;
-  }
-  let includeOwnerProfile = false;
-  let includeOwnerReverseProfile = false;
-  if (typeof opts.owner !== "boolean" && typeof opts.owner !== "undefined") {
-    includeOwnerProfile = opts.owner.profile;
-    includeOwnerReverseProfile = opts.owner.reverseProfile;
-  }
+  const includeMakerReverseProfile = isPropertyIncluded(opts.sales, "maker");
+  const includeTakerReverseProfile = isPropertyIncluded(opts.sales, "taker");
+  const includeTransactionLogs = isPropertyIncluded(
+    opts.mint,
+    "transactionLogs"
+  );
+  const includeOwnerProfile = isPropertyIncluded(opts.owner, "profile");
+  const includeOwnerReverseProfile = isPropertyIncluded(
+    opts.owner,
+    "reverseProfile"
+  );
 
   return {
     includeOwnerInfo,
@@ -202,5 +205,77 @@ export class BasementSDK {
       tokenId,
     });
     return nonFungibleTokenRefresh;
+  }
+
+  public async transfers(params?: TransfersQueryOptions) {
+    const { include, after, filter, limit } = params || {};
+    const includeTransferContract = !!include?.contract;
+    const includeTotalCount = include?.totalCount;
+    const includeToken = !!include?.token;
+    const includeTokenMedia = isPropertyIncluded(include?.token, "media");
+    const includeTransferContractReverseProfile = isPropertyIncluded(
+      include?.contract,
+      "reverseProfile"
+    );
+
+    const includeSale = !!include?.sale;
+    const includeMakerReverseProfile = isPropertyIncluded(
+      include?.sale,
+      "maker"
+    );
+
+    const includeTakerReverseProfile = isPropertyIncluded(
+      include?.sale,
+      "taker"
+    );
+
+    const includeTransaction = !!include?.transaction;
+    const includeTransactionLogs = isPropertyIncluded(
+      include?.transaction,
+      "logs"
+    );
+    const includeTransactionRecipient = isPropertyIncluded(
+      include?.transaction,
+      "recipient"
+    );
+    const includeTransactionSender = isPropertyIncluded(
+      include?.transaction,
+      "sender"
+    );
+
+    const includeTransferSender = !!include?.from;
+    const includeTransferSenderReverseProfile = isPropertyIncluded(
+      include?.from,
+      "reverseProfile"
+    );
+    const includeTransferRecipient = !!include?.to;
+    const includeTransferRecipientReverseProfile = isPropertyIncluded(
+      include?.to,
+      "reverseProfile"
+    );
+
+    const { transfers } = await this.sdk.transfers({
+      after,
+      filter,
+      limit,
+      includeTransferContract,
+      includeTransferContractReverseProfile,
+      includeMakerReverseProfile,
+      includeTakerReverseProfile,
+      includeSale,
+      includeTotalCount,
+      includeToken,
+      includeTokenMedia,
+      includeTransaction,
+      includeTransactionLogs,
+      includeTransactionRecipient,
+      includeTransactionSender,
+      includeTransferRecipient,
+      includeTransferSender,
+      includeTransferRecipientReverseProfile,
+      includeTransferSenderReverseProfile,
+    });
+
+    return transfers;
   }
 }
