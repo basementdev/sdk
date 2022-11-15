@@ -62,12 +62,12 @@ function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
 
 function parseTransactionIncludeOptions(opts?: TransactionQueryIncludeOptions) {
   const includeTransactionLogs = opts?.logs;
-  const includeTransactionRecipientInfo = !!opts?.recipient;
-  const includeTransactionSenderInfo = !!opts?.sender;
+  const includeTransactionRecipient = !!opts?.recipient;
+  const includeTransactionSender = !!opts?.sender;
   return {
     includeTransactionLogs,
-    includeTransactionRecipientInfo,
-    includeTransactionSenderInfo,
+    includeTransactionRecipient,
+    includeTransactionSender,
   };
 }
 
@@ -230,18 +230,12 @@ export class BasementSDK {
     );
 
     const includeTransaction = !!include?.transaction;
-    const includeTransactionLogs = isPropertyIncluded(
-      include?.transaction,
-      "logs"
-    );
-    const includeTransactionRecipient = isPropertyIncluded(
-      include?.transaction,
-      "recipient"
-    );
-    const includeTransactionSender = isPropertyIncluded(
-      include?.transaction,
-      "sender"
-    );
+    let parsedTransactionsProps = {};
+    if (typeof include?.transaction !== "boolean") {
+      parsedTransactionsProps = parseTransactionIncludeOptions(
+        include?.transaction
+      );
+    }
 
     const includeTransferSender = !!include?.from;
     const includeTransferSenderReverseProfile = isPropertyIncluded(
@@ -258,8 +252,6 @@ export class BasementSDK {
       after,
       filter,
       limit,
-      includeTransferContract,
-      includeTransferContractReverseProfile,
       includeMakerReverseProfile,
       includeTakerReverseProfile,
       includeSale,
@@ -267,13 +259,13 @@ export class BasementSDK {
       includeToken,
       includeTokenMedia,
       includeTransaction,
-      includeTransactionLogs,
-      includeTransactionRecipient,
-      includeTransactionSender,
       includeTransferRecipient,
       includeTransferSender,
+      includeTransferContract,
+      includeTransferContractReverseProfile,
       includeTransferRecipientReverseProfile,
       includeTransferSenderReverseProfile,
+      ...parsedTransactionsProps,
     });
 
     return transfers;
