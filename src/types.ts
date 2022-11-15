@@ -3,6 +3,7 @@ import {
   TokensQueryVariables,
   TransactionLogsQueryVariables,
   TransactionsQueryVariables,
+  TransfersQueryVariables,
 } from "./sdk";
 
 // https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist
@@ -165,4 +166,21 @@ export type TransactionLogsQueryIncludeOptions = {
 export type TransactionLogsQueryOptions = PluralQueryOptions<
   TransactionLogsQueryVariables["filter"],
   TransactionLogsQueryIncludeOptions
+>;
+
+export type TransfersQueryIncludeOptions = {
+  contract?: IncludeOnlyReverseProfile | boolean;
+  transaction?: TransactionQueryIncludeOptions | boolean;
+  sale?: RequireAtLeastOne<SalesFilterOptions> | boolean;
+  token?: Pick<TokenQueryIncludeOptions, "media"> | boolean;
+  from?: IncludeOnlyReverseProfile | boolean;
+  to?: IncludeOnlyReverseProfile | boolean;
+};
+
+export type TransfersQueryOptions = Omit<
+  PluralQueryOptions<
+    TransfersQueryVariables["filter"],
+    TransfersQueryIncludeOptions
+  >,
+  "reversed"
 >;

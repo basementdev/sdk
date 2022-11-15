@@ -1,63 +1,3 @@
-# query tokenTransfers(
-#   $filter: TransfersFilter!
-#   $limit: Int = 10
-#   $cursor: String
-#   $includeERC721Metadata: Boolean = false
-#   $includeFromProfile: Boolean = false
-#   $includeFromReverseProfile: Boolean = false
-#   $includeFromTokensInfo: Boolean = false
-#   $fromTokensLimit: Int = 10
-#   $fromTokensFilterSuspectedScam: Boolean = false
-#   $includeToProfile: Boolean = false
-#   $includeToReverseProfile: Boolean = false
-#   $includeToTokensInfo: Boolean = false
-#   $toTokensLimit: Int = 10
-#   $toTokensFilterSuspectedScam: Boolean = false
-# ) {
-#   tokenTransfers(filter: $filter, limit: $limit, cursor: $cursor) {
-#     nextCursor
-#     tokenTransfers {
-#       blockTimestamp
-#       hash
-#       id
-#       token
-#       erc721Metadata @include(if: $includeERC721Metadata) {
-#         ...TokenInfo
-#       }
-#       from {
-#         address
-#         profile @include(if: $includeFromProfile) {
-#           ...GlobalKeys
-#         }
-#         reverseProfile @include(if: $includeFromReverseProfile) {
-#           ...GlobalKeys
-#         }
-#         tokens(
-#           limit: $fromTokensLimit
-#           filter: { filterSuspectedScams: $fromTokensFilterSuspectedScam }
-#         ) @include(if: $includeFromTokensInfo) {
-#           ...TokenInfo
-#         }
-#       }
-#       to {
-#         address
-#         profile @include(if: $includeToProfile) {
-#           ...GlobalKeys
-#         }
-#         reverseProfile @include(if: $includeToReverseProfile) {
-#           ...GlobalKeys
-#         }
-#         tokens(
-#           limit: $toTokensLimit
-#           filter: { filterSuspectedScams: $toTokensFilterSuspectedScam }
-#         ) @include(if: $includeToTokensInfo) {
-#           ...TokenInfo
-#         }
-#       }
-#     }
-#   }
-# }
-
 query address(
   $address: String!
   $tokensLimit: Int = 10
@@ -66,7 +6,7 @@ query address(
   $includeTokens: Boolean = false
   $includeTokenUri: Boolean = false
   $includeMint: Boolean = false
-  $includeMedia: Boolean = false
+  $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
@@ -84,8 +24,10 @@ query address(
     }
     tokens(limit: $tokensLimit) @include(if: $includeTokens) {
       ...NonFungibleTokenInfo
-      ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
-      ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+      ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+      sales @include(if: $includeSales) {
+        ...NonFungibleTokenSaleInfo
+      }
       ...NonFungibleTokenMintInfo @include(if: $includeMint)
       tokenUri @include(if: $includeTokenUri)
     }
@@ -100,7 +42,7 @@ query token(
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
   $includeMint: Boolean = false
-  $includeMedia: Boolean = false
+  $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
   $includeMakerReverseProfile: Boolean = false
@@ -111,8 +53,10 @@ query token(
   token(contract: $contract, tokenId: $tokenId) {
     ...NonFungibleTokenInfo
     ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
-    ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
-    ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+    ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+    sales @include(if: $includeSales) {
+      ...NonFungibleTokenSaleInfo
+    }
     ...NonFungibleTokenMintInfo @include(if: $includeMint)
     tokenUri @include(if: $includeTokenUri)
   }
@@ -128,7 +72,7 @@ query tokens(
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
   $includeMint: Boolean = false
-  $includeMedia: Boolean = false
+  $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionRecipient: Boolean = false
@@ -144,8 +88,10 @@ query tokens(
     tokens {
       ...NonFungibleTokenInfo
       ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
-      ...NonFungibleTokenMediaInfo @include(if: $includeMedia)
-      ...NonFungibleTokenSaleInfo @include(if: $includeSales)
+      ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+      sales @include(if: $includeSales) {
+        ...NonFungibleTokenSaleInfo
+      }
       ...NonFungibleTokenMintInfo @include(if: $includeMint)
       tokenUri @include(if: $includeTokenUri)
     }
@@ -201,7 +147,12 @@ query transactionLogs(
   $includeContractReverseProfile: Boolean = false
   $includeTransaction: Boolean = false
 ) {
-  transactionLogs(after: $after, limit: $limit, filter: $filter, reversed: $reversed) {
+  transactionLogs(
+    after: $after
+    limit: $limit
+    filter: $filter
+    reversed: $reversed
+  ) {
     cursors {
       after
     }
@@ -222,6 +173,69 @@ query transactionLogs(
       transaction @include(if: $includeTransaction) {
         ...TransactionInfo
       }
+    }
+  }
+}
+
+query transfers(
+  $filter: TransfersFilter,
+  $after: String,
+  $limit: Int = 50,
+  $includeTotalCount: Boolean = false
+  $includeMakerReverseProfile: Boolean = false
+  $includeTakerReverseProfile: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeToken: Boolean = false
+  $includeTokenMedia: Boolean = false
+  $includeTransferContract: Boolean = false
+  $includeTransferContractReverseProfile: Boolean = false
+  $includeSale: Boolean = false
+  $includeTransaction: Boolean = false
+  $includeTransferSender: Boolean = false
+  $includeTransferSenderReverseProfile: Boolean = false
+  $includeTransferRecipient: Boolean = false
+  $includeTransferRecipientReverseProfile: Boolean = false
+) {
+  transfers(filter: $filter, after: $after, limit: $limit) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    transfers {
+      blockNumber
+      contract @include(if: $includeTransferContract) {
+        address
+        reverseProfile @include(if: $includeTransferContractReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      sale @include(if: $includeSale) {
+        ...NonFungibleTokenSaleInfo
+      }
+      transaction @include(if: $includeTransaction) {
+        ...TransactionInfo
+      }
+      from @include(if: $includeTransferSender) {
+        address
+        reverseProfile @include(if: $includeTransferSenderReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      to @include(if: $includeTransferRecipient) {
+        address
+        reverseProfile @include(if: $includeTransferRecipientReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      isAirdrop
+      logIndex
+      token @include(if: $includeToken) {
+        ...NonFungibleTokenInfo
+        ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+      }
+      
     }
   }
 }
@@ -271,29 +285,27 @@ fragment TransactionInfo on Transaction {
   }
 }
 
-fragment NonFungibleTokenSaleInfo on NonFungibleToken {
-  sales {
-    currencyContract {
-      address
+fragment NonFungibleTokenSaleInfo on NonFungibleTokenSale {
+  currencyContract {
+    address
+  }
+  eventIndex
+  logIndex
+  maker {
+    address
+    reverseProfile @include(if: $includeMakerReverseProfile) {
+      ...GlobalKeys
     }
-    eventIndex
-    logIndex
-    maker {
-      address
-      reverseProfile @include(if: $includeMakerReverseProfile) {
-        ...GlobalKeys
-      }
-    }
-    marketplace
-    marketplaceContract {
-      address
-    }
-    price
-    taker {
-      address
-      reverseProfile @include(if: $includeTakerReverseProfile) {
-        ...GlobalKeys
-      }
+  }
+  marketplace
+  marketplaceContract {
+    address
+  }
+  price
+  taker {
+    address
+    reverseProfile @include(if: $includeTakerReverseProfile) {
+      ...GlobalKeys
     }
   }
 }
