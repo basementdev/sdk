@@ -1,8 +1,9 @@
+import { server } from "../mocks/handlers";
 import { BasementSDK } from "../src";
 
 describe("Basement SDK", () => {
   const TOKEN_CONTRACT_ADDRESS = "0xa97d3eb991303cf3b9b759bd026bacb55256e9db";
-  const TOKEN_ID = "216";
+  const TOKEN_ID = "5";
   const sdk = new BasementSDK();
 
   test("token query", async () => {
@@ -11,10 +12,10 @@ describe("Basement SDK", () => {
       tokenId: TOKEN_ID,
       include: {
         media: true,
-        mint: { transactionLogs: true },
+        mintTransaction: { logs: true, sender: true, recipient: true },
         sales: {
-          maker: { reverseProfile: true },
-          taker: { reverseProfile: true },
+          maker: true,
+          taker: true,
         },
         tokenUri: true,
         owner: {
@@ -24,10 +25,27 @@ describe("Basement SDK", () => {
       },
     });
 
-    const keys = Object.keys(token?.owner);
+    const tokenKeys = Object.keys(token);
+    const ownerKeys = Object.keys(token.owner);
+    const mintTransactionKeys = Object.keys(token.mintTransaction);
 
-    expect(keys).toEqual(
+    expect(ownerKeys).toEqual(
       expect.arrayContaining(["address", "profile", "reverseProfile"])
+    );
+
+    // Media keys
+    expect(tokenKeys).toEqual(expect.arrayContaining(["animation", "image"]));
+
+    expect(tokenKeys).toEqual(expect.arrayContaining(["tokenUri"]));
+
+    expect(tokenKeys).toEqual(expect.arrayContaining(["sales"]));
+
+    expect(tokenKeys).toEqual(
+      expect.arrayContaining(["mintPrice", "mintTransaction"])
+    );
+
+    expect(mintTransactionKeys).toEqual(
+      expect.arrayContaining(["from", "to", "logs"])
     );
   });
 
@@ -38,7 +56,9 @@ describe("Basement SDK", () => {
       include: {
         profile: true,
         reverseProfile: true,
-        tokens: { limit: 10 },
+        tokens: {
+          limit: 10,
+        },
       },
     });
 
@@ -50,17 +70,17 @@ describe("Basement SDK", () => {
     expect(data.tokens?.length).toBeLessThanOrEqual(tokensLimit);
   });
 
-  // test("tokenMetadataRefresh mutation", async () => {
-  //   const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
-  //     contract: TOKEN_CONTRACT_ADDRESS,
-  //     tokenId: TOKEN_ID,
-  //   });
-  //   expect(tokenMetadataRefresh).toBeDefined;
-  // });
+  test("nonFungibleTokenRefresh mutation", async () => {
+    const data = await sdk.nonFungibleTokenRefresh({
+      contract: TOKEN_CONTRACT_ADDRESS,
+      tokenId: TOKEN_ID,
+    });
+    expect(data).toBeTruthy();
+  });
 
   test("tokens query", async () => {
     const tokensLimit = 5;
-    const { tokens } = await sdk.tokens({
+    const data = await sdk.tokens({
       filter: { ownerAddresses: ["vitalik.eth"] },
       limit: tokensLimit,
       include: {
@@ -68,52 +88,32 @@ describe("Basement SDK", () => {
           profile: true,
           reverseProfile: true,
         },
+        totalCount: true,
+        tokenUri: true,
+        mintTransaction: true,
+        media: true,
+        sales: true,
       },
     });
-    expect(tokens.length).toBeLessThanOrEqual(tokensLimit);
-    const token = tokens[0];
-    const keys = Object.keys(token.owner);
-    expect(keys).toEqual(
+    expect(data.tokens.length).toBeLessThanOrEqual(tokensLimit);
+    const token = data.tokens[0];
+    const keys = Object.keys(data);
+    const tokenKeys = Object.keys(token);
+    const ownerKeys = Object.keys(token.owner);
+    expect(ownerKeys).toEqual(
       expect.arrayContaining(["address", "profile", "reverseProfile"])
     );
+    expect(tokenKeys).toEqual(
+      expect.arrayContaining([
+        "mintTransaction",
+        "sales",
+        "tokenUri",
+        "image",
+        "animation",
+        "tokenUri",
+      ])
+    );
+
+    expect(keys).toEqual(expect.arrayContaining(["totalCount"]));
   });
-
-  // test("tokenTransfers query", async () => {
-  //   const tokenTransfersLimit = 5;
-  //   const { tokenTransfers } = await sdk.tokenTransfers({
-  //     filter: { contractAddress: TOKEN_CONTRACT_ADDRESS },
-  //     limit: tokenTransfersLimit,
-  //     include: {
-  //       erc721Metadata: true,
-  //       from: {
-  //         profile: true,
-  //         reverseProfile: true,
-  //         tokens: {},
-  //       },
-  //       to: {
-  //         profile: true,
-  //         reverseProfile: true,
-  //         tokens: {},
-  //       },
-  //     },
-  //   });
-  //   const tokenTransfer = tokenTransfers?.tokenTransfers[0];
-  //   const tokenTransferKeys = Object.keys(tokenTransfer);
-  //   const tokenTransferFromKeys = Object.keys(tokenTransfer?.from);
-  //   const tokenTransferToKeys = Object.keys(tokenTransfer?.to);
-  //   expect(tokenTransfers?.tokenTransfers?.length).toBeLessThanOrEqual(
-  //     tokenTransfersLimit
-  //   );
-
-  //   expect(tokenTransferKeys).toEqual(
-  //     expect.arrayContaining(["from", "to", "erc721Metadata"])
-  //   );
-
-  //   expect(tokenTransferFromKeys).toEqual(
-  //     expect.arrayContaining(["address", "profile", "reverseProfile", "tokens"])
-  //   );
-  //   expect(tokenTransferToKeys).toEqual(
-  //     expect.arrayContaining(["address", "profile", "reverseProfile", "tokens"])
-  //   );
-  // });
 });

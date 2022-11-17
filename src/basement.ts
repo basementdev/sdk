@@ -4,6 +4,7 @@ import {
   getSdk,
   NonFungibleTokenRefreshMutationVariables,
   TokenQuery,
+  TokenQueryVariables,
   TokensQuery,
   TransactionQuery,
 } from "./sdk";
@@ -29,16 +30,24 @@ function isPropertyIncluded<T>(
 }
 
 function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
-  const includeOwnerInfo = !!opts.owner;
-  const includeMintInfo = !!opts.mint;
+  const includeOwner = !!opts.owner;
+  const includeMint = !!opts.mintTransaction;
+  const includeTransactionRecipient = isPropertyIncluded(
+    opts.mintTransaction,
+    "recipient"
+  );
+  const includeTransactionSender = isPropertyIncluded(
+    opts.mintTransaction,
+    "sender"
+  );
   const includeSales = !!opts.sales;
   const includeTokenUri = opts.tokenUri;
-  const includeMediaInfo = opts.media;
+  const includeTokenMedia = opts.media;
   const includeMakerReverseProfile = isPropertyIncluded(opts.sales, "maker");
   const includeTakerReverseProfile = isPropertyIncluded(opts.sales, "taker");
   const includeTransactionLogs = isPropertyIncluded(
-    opts.mint,
-    "transactionLogs"
+    opts.mintTransaction,
+    "logs"
   );
   const includeOwnerProfile = isPropertyIncluded(opts.owner, "profile");
   const includeOwnerReverseProfile = isPropertyIncluded(
@@ -47,17 +56,19 @@ function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
   );
 
   return {
-    includeOwnerInfo,
-    includeMintInfo,
+    includeOwner,
+    includeMint,
     includeTokenUri,
     includeSales,
-    includeMediaInfo,
+    includeTokenMedia,
     includeMakerReverseProfile,
     includeTakerReverseProfile,
     includeTransactionLogs,
     includeOwnerProfile,
     includeOwnerReverseProfile,
-  };
+    includeTransactionRecipient,
+    includeTransactionSender,
+  } as Partial<TokenQueryVariables>;
 }
 
 function parseTransactionIncludeOptions(opts?: TransactionQueryIncludeOptions) {
@@ -90,6 +101,7 @@ export class BasementSDK {
     const data = await this.sdk.token({
       contract,
       tokenId,
+
       ...parseTokenIncludeOptions(include),
     });
     return data.token;
