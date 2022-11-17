@@ -1,9 +1,10 @@
-import { server } from "../mocks/handlers";
 import { BasementSDK } from "../src";
 
 describe("Basement SDK", () => {
   const TOKEN_CONTRACT_ADDRESS = "0xa97d3eb991303cf3b9b759bd026bacb55256e9db";
   const TOKEN_ID = "5";
+  const TXN_HASH =
+    "0xcdcc49079b7622c9527e9bd50314dda94ac4e3da5e0378d1ed1c41b1a442f531";
   const sdk = new BasementSDK();
 
   test("token query", async () => {
@@ -115,5 +116,74 @@ describe("Basement SDK", () => {
     );
 
     expect(keys).toEqual(expect.arrayContaining(["totalCount"]));
+  });
+
+  test("transaction query", async () => {
+    let data = await sdk.transaction({
+      hash: TXN_HASH,
+    });
+    let keys = Object.keys(data);
+    const includeKeys = ["logs", "from", "to"];
+    expect(keys).not.toEqual(expect.arrayContaining(includeKeys));
+    data = await sdk.transaction({
+      hash: TXN_HASH,
+      include: { logs: true, recipient: true, sender: true },
+    });
+    keys = Object.keys(data);
+    expect(keys).toEqual(expect.arrayContaining(includeKeys));
+  });
+
+  test("transactions query", async () => {
+    let data = await sdk.transactions({ include: { totalCount: true } });
+    expect(data?.totalCount).toBeDefined();
+    data = await sdk.transactions({
+      include: { logs: true, recipient: true, sender: true },
+    });
+    expect(data?.totalCount).toBeUndefined();
+    const tx = data?.transactions[0];
+    const keys = Object.keys(tx);
+    expect(keys).toEqual(expect.arrayContaining(["logs", "from", "to"]));
+  });
+
+  test("transasctionLogs query", async () => {
+    const data = await sdk.transactionLogs({
+      include: {
+        address: true,
+        totalCount: true,
+        transaction: { recipient: true, sender: true },
+      },
+    });
+    expect(data?.totalCount).toBeDefined();
+    const txLogs = data?.transactionLogs[0];
+    expect(txLogs?.address).toBeDefined();
+    expect(txLogs?.transaction).toBeDefined();
+    const txLogsTransactionKeys = Object.keys(txLogs?.transaction);
+    expect(txLogsTransactionKeys).toEqual(
+      expect.arrayContaining(["from", "to"])
+    );
+  });
+
+  test("transfers query", async () => {
+    const data = await sdk.transfers({
+      include: {
+        totalCount: true,
+        contract: true,
+        from: true,
+        to: true,
+        sale: {
+          maker: { reverseProfile: true },
+          taker: { reverseProfile: false },
+        },
+        token: { media: true },
+        transaction: { logs: true, recipient: true, sender: true },
+      },
+    });
+    expect(data.totalCount).toBeDefined();
+    const transfer = data.transfers[0];
+    expect(transfer.contract?.address).toBeDefined();
+    expect(transfer.from?.address).toBeDefined();
+    expect(transfer.to?.address).toBeDefined();
+    expect(transfer.sale?.maker?.reverseProfile).toBeDefined();
+    expect(transfer.sale?.taker?.reverseProfile).toBeUndefined();
   });
 });

@@ -51,12 +51,12 @@ export type TokenVariables = {
   tokenId?: string;
 };
 
-export type TransactionQueryIncludeOptions = {
+export type TransactionQueryIncludeOptions = RequireAtLeastOne<{
   /** Whether to include the logs that happened within the transaction - defaults to `false` */
   logs: boolean;
   sender: IncludeOnlyReverseProfile | boolean;
   recipient: IncludeOnlyReverseProfile | boolean;
-};
+}>;
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. */
@@ -68,7 +68,7 @@ export type TokenQueryIncludeOptions = {
   /** Whether to include sales data. This includes information like the price at which previous sales happened and on which marketplace.  */
   sales?: RequireAtLeastOne<SalesFilterOptions> | boolean;
   /** Whether to include information regarding the token's mint. This includes information like the mint transaction and mint price. */
-  mintTransaction?: RequireAtLeastOne<TransactionQueryIncludeOptions> | boolean;
+  mintTransaction?: TransactionQueryIncludeOptions | boolean;
 };
 
 export type TokenFilterOptions = {
@@ -151,12 +151,12 @@ export type PluralQueryOptions<K, T> = {
 
 export type TransactionsQueryOptions = PluralQueryOptions<
   TransactionsQueryVariables["filter"],
-  TransactionQueryIncludeOptions
+  Partial<TransactionQueryIncludeOptions>
 >;
 
 export type TransactionLogsQueryIncludeOptions = {
-  contract?: IncludeOnlyReverseProfile | boolean;
-  transaction?: TransactionQueryIncludeOptions | boolean;
+  address?: IncludeOnlyReverseProfile | boolean;
+  transaction?: Omit<TransactionQueryIncludeOptions, "logs"> | boolean;
 };
 
 export type TransactionLogsQueryOptions = PluralQueryOptions<
