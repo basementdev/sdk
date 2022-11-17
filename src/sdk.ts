@@ -521,7 +521,7 @@ export const NonFungibleTokenSaleInfoFragmentDoc = gql`
     }
     eventIndex
     logIndex
-    maker {
+    maker @include(if: $includeMaker) {
       address
       reverseProfile @include(if: $includeMakerReverseProfile) {
         ...GlobalKeys
@@ -532,7 +532,7 @@ export const NonFungibleTokenSaleInfoFragmentDoc = gql`
       address
     }
     price
-    taker {
+    taker @include(if: $includeTaker) {
       address
       reverseProfile @include(if: $includeTakerReverseProfile) {
         ...GlobalKeys
@@ -608,6 +608,8 @@ export const AddressDocument = gql`
     $includeTokenMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeSales: Boolean = false
+    $includeMaker: Boolean = false
+    $includeTaker: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
     $includeTransactionRecipient: Boolean = false
@@ -650,6 +652,8 @@ export const TokenDocument = gql`
     $includeTokenMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeSales: Boolean = false
+    $includeMaker: Boolean = false
+    $includeTaker: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
     $includeTransactionRecipient: Boolean = false
@@ -688,6 +692,8 @@ export const TokensDocument = gql`
     $includeTransactionSender: Boolean = false
     $includeTransactionRecipient: Boolean = false
     $includeSales: Boolean = false
+    $includeMaker: Boolean = false
+    $includeTaker: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
   ) {
@@ -806,6 +812,8 @@ export const TransfersDocument = gql`
     $after: String
     $limit: Int = 50
     $includeTotalCount: Boolean = false
+    $includeMaker: Boolean = false
+    $includeTaker: Boolean = false
     $includeMakerReverseProfile: Boolean = false
     $includeTakerReverseProfile: Boolean = false
     $includeTransactionLogs: Boolean = false
@@ -1023,6 +1031,8 @@ export type AddressQueryVariables = Exact<{
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
+  includeMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTaker?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
@@ -1051,12 +1061,12 @@ export type AddressQuery = {
         marketplace: Marketplace;
         price: any;
         currencyContract: { address: any } | null;
-        maker: {
+        maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
         marketplaceContract: { address: any };
-        taker: {
+        taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
@@ -1131,6 +1141,8 @@ export type TokenQueryVariables = Exact<{
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
+  includeMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTaker?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
@@ -1155,12 +1167,12 @@ export type TokenQuery = {
       marketplace: Marketplace;
       price: any;
       currencyContract: { address: any } | null;
-      maker: {
+      maker?: {
         address: any;
         reverseProfile?: { name: string; avatar: string | null } | null;
       };
       marketplaceContract: { address: any };
-      taker: {
+      taker?: {
         address: any;
         reverseProfile?: { name: string; avatar: string | null } | null;
       };
@@ -1241,6 +1253,8 @@ export type TokensQueryVariables = Exact<{
   includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
   includeSales?: InputMaybe<Scalars["Boolean"]>;
+  includeMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTaker?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
 }>;
@@ -1266,12 +1280,12 @@ export type TokensQuery = {
         marketplace: Marketplace;
         price: any;
         currencyContract: { address: any } | null;
-        maker: {
+        maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
         marketplaceContract: { address: any };
-        taker: {
+        taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
@@ -1500,6 +1514,8 @@ export type TransfersQueryVariables = Exact<{
   after: InputMaybe<Scalars["String"]>;
   limit?: InputMaybe<Scalars["Int"]>;
   includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
+  includeMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTaker?: InputMaybe<Scalars["Boolean"]>;
   includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
@@ -1535,12 +1551,12 @@ export type TransfersQuery = {
         marketplace: Marketplace;
         price: any;
         currencyContract: { address: any } | null;
-        maker: {
+        maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
         marketplaceContract: { address: any };
-        taker: {
+        taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
@@ -1695,12 +1711,12 @@ export type NonFungibleTokenSaleInfoFragment = {
   marketplace: Marketplace;
   price: any;
   currencyContract: { address: any } | null;
-  maker: {
+  maker?: {
     address: any;
     reverseProfile?: { name: string; avatar: string | null } | null;
   };
   marketplaceContract: { address: any };
-  taker: {
+  taker?: {
     address: any;
     reverseProfile?: { name: string; avatar: string | null } | null;
   };

@@ -27,12 +27,12 @@ export type GenerateIncludeQueryOptions<
   include?: T extends "single" ? K : K & Extra;
 };
 
-export type IncludeFullProfileOptions = {
+export type IncludeFullProfileOptions = RequireAtLeastOne<{
   /** Whether to include the ENS profile information in the response - defaults to `false` */
   profile: boolean;
   /** Whether to include the reverse resolution of the ENS profile information in the response (ENS docs: https://docs.ens.domains/contract-api-reference/reverseregistrar) - defaults to `false`  */
   reverseProfile: boolean;
-};
+}>;
 
 export type IncludeOnlyReverseProfile = Pick<
   IncludeFullProfileOptions,
@@ -44,10 +44,19 @@ export type SalesFilterOptions = {
   taker: IncludeOnlyReverseProfile | boolean;
 };
 
-export type MintFilterOptions = {
-  /** Whether to include the logs that happened within the transaction - defaults to `false` */
-  transactionLogs: boolean;
+export type TokenVariables = {
+  /** contract hex-address */
+  contract: string;
+  /** token ID */
+  tokenId?: string;
 };
+
+export type TransactionQueryIncludeOptions = RequireAtLeastOne<{
+  /** Whether to include the logs that happened within the transaction - defaults to `false` */
+  logs: boolean;
+  sender: IncludeOnlyReverseProfile | boolean;
+  recipient: IncludeOnlyReverseProfile | boolean;
+}>;
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. */
@@ -59,20 +68,13 @@ export type TokenQueryIncludeOptions = {
   /** Whether to include sales data. This includes information like the price at which previous sales happened and on which marketplace.  */
   sales?: RequireAtLeastOne<SalesFilterOptions> | boolean;
   /** Whether to include information regarding the token's mint. This includes information like the mint transaction and mint price. */
-  mint?: MintFilterOptions | boolean;
+  mintTransaction?: TransactionQueryIncludeOptions | boolean;
 };
 
 export type TokenFilterOptions = {
   /** Maximum number of tokens to return  - defaults to `50`  */
   limit?: number;
 } & TokenQueryIncludeOptions;
-
-export type TokenVariables = {
-  /** contract hex-address */
-  contract: string;
-  /** token ID */
-  tokenId?: string;
-};
 
 export type TokensIncludeOption = {
   /** Whether to include the tokens that the address holds - defaults to `false` */
@@ -133,12 +135,6 @@ export type AddressQueryOptions = {
   include?: AddressQueryIncludeOptions;
 };
 
-export type TransactionQueryIncludeOptions = {
-  logs?: boolean;
-  sender?: IncludeOnlyReverseProfile | boolean;
-  recipient?: IncludeOnlyReverseProfile | boolean;
-};
-
 export type TransactionQueryOptions = {
   /** Transaction hash */
   hash: string;
@@ -155,12 +151,12 @@ export type PluralQueryOptions<K, T> = {
 
 export type TransactionsQueryOptions = PluralQueryOptions<
   TransactionsQueryVariables["filter"],
-  TransactionQueryIncludeOptions
+  Partial<TransactionQueryIncludeOptions>
 >;
 
 export type TransactionLogsQueryIncludeOptions = {
-  contract?: IncludeOnlyReverseProfile | boolean;
-  transaction?: TransactionQueryIncludeOptions | boolean;
+  address?: IncludeOnlyReverseProfile | boolean;
+  transaction?: Omit<TransactionQueryIncludeOptions, "logs"> | boolean;
 };
 
 export type TransactionLogsQueryOptions = PluralQueryOptions<

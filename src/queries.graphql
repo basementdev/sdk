@@ -9,6 +9,8 @@ query address(
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
+  $includeMaker: Boolean = false
+  $includeTaker: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
@@ -45,6 +47,8 @@ query token(
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeSales: Boolean = false
+  $includeMaker: Boolean = false
+  $includeTaker: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
@@ -77,6 +81,8 @@ query tokens(
   $includeTransactionSender: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeSales: Boolean = false
+  $includeMaker: Boolean = false
+  $includeTaker: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
 ) {
@@ -182,6 +188,8 @@ query transfers(
   $after: String,
   $limit: Int = 50,
   $includeTotalCount: Boolean = false
+  $includeMaker: Boolean = false
+  $includeTaker: Boolean = false
   $includeMakerReverseProfile: Boolean = false
   $includeTakerReverseProfile: Boolean = false
   $includeTransactionLogs: Boolean = false
@@ -291,7 +299,7 @@ fragment NonFungibleTokenSaleInfo on NonFungibleTokenSale {
   }
   eventIndex
   logIndex
-  maker {
+  maker @include(if: $includeMaker) {
     address
     reverseProfile @include(if: $includeMakerReverseProfile) {
       ...GlobalKeys
@@ -302,7 +310,7 @@ fragment NonFungibleTokenSaleInfo on NonFungibleTokenSale {
     address
   }
   price
-  taker {
+  taker @include(if: $includeTaker) {
     address
     reverseProfile @include(if: $includeTakerReverseProfile) {
       ...GlobalKeys

@@ -4,11 +4,13 @@ import {
   getSdk,
   NonFungibleTokenRefreshMutationVariables,
   TokenQuery,
+  TokenQueryVariables,
   TokensQuery,
   TransactionQuery,
 } from "./sdk";
 import {
   AddressQueryOptions,
+  SalesFilterOptions,
   TokenQueryIncludeOptions,
   TokenQueryOptions,
   TokensQueryOptions,
@@ -28,17 +30,57 @@ function isPropertyIncluded<T>(
   return !!obj?.[prop as keyof T];
 }
 
-function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
-  const includeOwnerInfo = !!opts.owner;
-  const includeMintInfo = !!opts.mint;
+function parseSaleIncludeOptions(opts?: Partial<SalesFilterOptions> | boolean) {
+  const includeMaker = isPropertyIncluded(opts, "maker");
+  const includeTaker = isPropertyIncluded(opts, "taker");
+  let includeMakerReverseProfile = false;
+  if (
+    includeMaker &&
+    typeof opts !== "boolean" &&
+    typeof opts.maker !== "boolean"
+  ) {
+    includeMakerReverseProfile = opts.maker.reverseProfile;
+  }
+
+  let includeTakerReverseProfile = false;
+  if (
+    includeTaker &&
+    typeof opts !== "boolean" &&
+    typeof opts.taker !== "boolean"
+  ) {
+    includeTakerReverseProfile = opts.taker.reverseProfile;
+  }
+  return {
+    includeTaker,
+    includeTakerReverseProfile,
+    includeMaker,
+    includeMakerReverseProfile,
+  };
+}
+
+function parseTokenIncludeOptions(opts?: Partial<TokenQueryIncludeOptions>) {
+  const includeOwner = !!opts.owner;
+  const includeMint = !!opts.mintTransaction;
+  const includeTransactionRecipient = isPropertyIncluded(
+    opts.mintTransaction,
+    "recipient"
+  );
+  const includeTransactionSender = isPropertyIncluded(
+    opts.mintTransaction,
+    "sender"
+  );
   const includeSales = !!opts.sales;
   const includeTokenUri = opts.tokenUri;
-  const includeMediaInfo = opts.media;
-  const includeMakerReverseProfile = isPropertyIncluded(opts.sales, "maker");
-  const includeTakerReverseProfile = isPropertyIncluded(opts.sales, "taker");
+  const includeTokenMedia = opts.media;
+  const {
+    includeMaker,
+    includeMakerReverseProfile,
+    includeTaker,
+    includeTakerReverseProfile,
+  } = parseSaleIncludeOptions(opts.sales);
   const includeTransactionLogs = isPropertyIncluded(
-    opts.mint,
-    "transactionLogs"
+    opts.mintTransaction,
+    "logs"
   );
   const includeOwnerProfile = isPropertyIncluded(opts.owner, "profile");
   const includeOwnerReverseProfile = isPropertyIncluded(
@@ -47,20 +89,26 @@ function parseTokenIncludeOptions(opts?: TokenQueryIncludeOptions) {
   );
 
   return {
-    includeOwnerInfo,
-    includeMintInfo,
+    includeOwner,
+    includeMint,
     includeTokenUri,
     includeSales,
-    includeMediaInfo,
+    includeTokenMedia,
+    includeMaker,
+    includeTaker,
     includeMakerReverseProfile,
     includeTakerReverseProfile,
     includeTransactionLogs,
     includeOwnerProfile,
     includeOwnerReverseProfile,
-  };
+    includeTransactionRecipient,
+    includeTransactionSender,
+  } as Partial<TokenQueryVariables>;
 }
 
-function parseTransactionIncludeOptions(opts?: TransactionQueryIncludeOptions) {
+function parseTransactionIncludeOptions(
+  opts?: Partial<TransactionQueryIncludeOptions>
+) {
   const includeTransactionLogs = opts?.logs;
   const includeTransactionRecipient = !!opts?.recipient;
   const includeTransactionSender = !!opts?.sender;
@@ -90,6 +138,7 @@ export class BasementSDK {
     const data = await this.sdk.token({
       contract,
       tokenId,
+
       ...parseTokenIncludeOptions(include),
     });
     return data.token;
@@ -176,7 +225,7 @@ export class BasementSDK {
     reversed,
   }: TransactionLogsQueryOptions) {
     const includeTotalCount = include?.totalCount;
-    const includeContractReverseProfile = !!include?.contract;
+    const includeContractReverseProfile = !!include?.address;
     const includeTransaction = !!include.transaction;
     let transactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
@@ -219,15 +268,12 @@ export class BasementSDK {
     );
 
     const includeSale = !!include?.sale;
-    const includeMakerReverseProfile = isPropertyIncluded(
-      include?.sale,
-      "maker"
-    );
-
-    const includeTakerReverseProfile = isPropertyIncluded(
-      include?.sale,
-      "taker"
-    );
+    const {
+      includeMaker,
+      includeMakerReverseProfile,
+      includeTaker,
+      includeTakerReverseProfile,
+    } = parseSaleIncludeOptions(include.sale);
 
     const includeTransaction = !!include?.transaction;
     let parsedTransactionsProps = {};
@@ -252,6 +298,8 @@ export class BasementSDK {
       after,
       filter,
       limit,
+      includeMaker,
+      includeTaker,
       includeMakerReverseProfile,
       includeTakerReverseProfile,
       includeSale,
