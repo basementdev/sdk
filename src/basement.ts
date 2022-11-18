@@ -3,129 +3,60 @@ import {
   AddressQuery,
   getSdk,
   NonFungibleTokenRefreshMutationVariables,
+  SdkFunctionWrapper,
   TokenQuery,
-  TokenQueryVariables,
   TokensQuery,
   TransactionQuery,
 } from "./sdk";
 import {
   AddressQueryOptions,
-  SalesFilterOptions,
-  TokenQueryIncludeOptions,
   TokenQueryOptions,
   TokensQueryOptions,
   TransactionLogsQueryOptions,
-  TransactionQueryIncludeOptions,
   TransactionQueryOptions,
   TransactionsQueryOptions,
   TransfersQueryOptions,
 } from "./types";
+import isPropertyIncluded from "./utils/isPropertyIncluded";
+import {
+  parseSaleIncludeOptions,
+  parseTokenIncludeOptions,
+  parseTransactionIncludeOptions,
+} from "./utils/parseIncludeOptions";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
 
-function isPropertyIncluded<T>(
-  obj: T,
-  prop: keyof Exclude<T, boolean>
-): boolean {
-  return !!obj?.[prop as keyof T];
-}
-
-function parseSaleIncludeOptions(opts?: Partial<SalesFilterOptions> | boolean) {
-  const includeMaker = isPropertyIncluded(opts, "maker");
-  const includeTaker = isPropertyIncluded(opts, "taker");
-  let includeMakerReverseProfile = false;
-  if (
-    includeMaker &&
-    typeof opts !== "boolean" &&
-    typeof opts.maker !== "boolean"
-  ) {
-    includeMakerReverseProfile = opts.maker.reverseProfile;
-  }
-
-  let includeTakerReverseProfile = false;
-  if (
-    includeTaker &&
-    typeof opts !== "boolean" &&
-    typeof opts.taker !== "boolean"
-  ) {
-    includeTakerReverseProfile = opts.taker.reverseProfile;
-  }
-  return {
-    includeTaker,
-    includeTakerReverseProfile,
-    includeMaker,
-    includeMakerReverseProfile,
-  };
-}
-
-function parseTokenIncludeOptions(opts?: Partial<TokenQueryIncludeOptions>) {
-  const includeOwner = !!opts.owner;
-  const includeMint = !!opts.mintTransaction;
-  const includeTransactionRecipient = isPropertyIncluded(
-    opts.mintTransaction,
-    "recipient"
-  );
-  const includeTransactionSender = isPropertyIncluded(
-    opts.mintTransaction,
-    "sender"
-  );
-  const includeSales = !!opts.sales;
-  const includeTokenUri = opts.tokenUri;
-  const includeTokenMedia = opts.media;
-  const {
-    includeMaker,
-    includeMakerReverseProfile,
-    includeTaker,
-    includeTakerReverseProfile,
-  } = parseSaleIncludeOptions(opts.sales);
-  const includeTransactionLogs = isPropertyIncluded(
-    opts.mintTransaction,
-    "logs"
-  );
-  const includeOwnerProfile = isPropertyIncluded(opts.owner, "profile");
-  const includeOwnerReverseProfile = isPropertyIncluded(
-    opts.owner,
-    "reverseProfile"
-  );
-
-  return {
-    includeOwner,
-    includeMint,
-    includeTokenUri,
-    includeSales,
-    includeTokenMedia,
-    includeMaker,
-    includeTaker,
-    includeMakerReverseProfile,
-    includeTakerReverseProfile,
-    includeTransactionLogs,
-    includeOwnerProfile,
-    includeOwnerReverseProfile,
-    includeTransactionRecipient,
-    includeTransactionSender,
-  } as Partial<TokenQueryVariables>;
-}
-
-function parseTransactionIncludeOptions(
-  opts?: Partial<TransactionQueryIncludeOptions>
-) {
-  const includeTransactionLogs = opts?.logs;
-  const includeTransactionRecipient = !!opts?.recipient;
-  const includeTransactionSender = !!opts?.sender;
-  return {
-    includeTransactionLogs,
-    includeTransactionRecipient,
-    includeTransactionSender,
-  };
-}
+type SDKOptions = {
+  endpoint?: string;
+  apiKey?: string;
+};
 
 export class BasementSDK {
+  private apiKey?: string;
+
   private sdk: ReturnType<typeof getSdk>;
 
-  constructor(endpoint: string = DEFAULT_ENDPOINT) {
+  constructor(opts?: SDKOptions) {
+    const { apiKey, endpoint = DEFAULT_ENDPOINT } = opts || {};
     const client = new GraphQLClient(endpoint);
-    this.sdk = getSdk(client);
+    this.apiKey = apiKey;
+    this.sdk = getSdk(client, this.withWrapper);
   }
+
+  private withWrapper: SdkFunctionWrapper = async <T>(
+    // eslint-disable-next-line no-unused-vars
+    action: (requestHeaders?: Record<string, string>) => Promise<T>
+  ): Promise<T> => {
+    const headers: Record<string, string> = {
+      "X-Basement-SDK": "true",
+    };
+    if (this.apiKey) {
+      headers["X-Basement-API-Key"] = this.apiKey;
+    }
+
+    const result = await action(headers);
+    return result;
+  };
 
   /**
    * Queries information about a specific token
