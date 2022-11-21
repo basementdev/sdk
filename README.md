@@ -27,9 +27,9 @@ import { BasementSDK } from "@basementdev/sdk";
 
 const sdk = new BasementSDK();
 
-const { address } = await sdk.address({
-  name: "vitalik.eth",
-  include: { tokens: { limit: 5 }, profile: true },
+const data = await sdk.address({
+  address: "vitalik.eth",
+  include: { profile: true, tokens: true },
 });
 ```
 

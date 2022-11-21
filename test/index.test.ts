@@ -57,9 +57,7 @@ describe("Basement SDK", () => {
       include: {
         profile: true,
         reverseProfile: true,
-        tokens: {
-          limit: 10,
-        },
+        tokens: true,
       },
     });
 

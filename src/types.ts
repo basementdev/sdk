@@ -84,7 +84,7 @@ export type TokenFilterOptions = {
 
 export type TokensIncludeOption = {
   /** Whether to include the tokens that the address holds - defaults to `false` */
-  tokens?: TokenFilterOptions;
+  tokens?: TokenFilterOptions | boolean;
 };
 
 export type TokensQueryFilterOptions = {

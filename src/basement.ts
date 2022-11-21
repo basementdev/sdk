@@ -103,7 +103,12 @@ export class BasementSDK {
     include,
   }: AddressQueryOptions): Promise<AddressQuery["address"]> {
     const includeTokens = !!include?.tokens;
-    const tokensLimit = include?.tokens?.limit;
+    let tokensLimit = 10;
+    let tokensIncludeOptions = {};
+    if (typeof include?.tokens !== "boolean" && includeTokens) {
+      tokensLimit = include.tokens.limit;
+      tokensIncludeOptions = parseTokenIncludeOptions(include.tokens);
+    }
     const includeProfile = include?.profile;
     const includeReverseProfile = include?.reverseProfile;
     const data = await this.sdk.address({
@@ -112,7 +117,7 @@ export class BasementSDK {
       includeReverseProfile,
       includeTokens,
       tokensLimit,
-      ...parseTokenIncludeOptions(include.tokens),
+      ...tokensIncludeOptions,
     });
 
     return data.address;
