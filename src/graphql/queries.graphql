@@ -183,10 +183,10 @@ query transactionLogs(
   }
 }
 
-query transfers(
-  $filter: TransfersFilter,
-  $after: String,
-  $limit: Int = 50,
+query erc721Transfers(
+  $filter: TransfersFilter
+  $after: String
+  $limit: Int = 50
   $includeTotalCount: Boolean = false
   $includeMaker: Boolean = false
   $includeTaker: Boolean = false
@@ -206,12 +206,12 @@ query transfers(
   $includeTransferRecipient: Boolean = false
   $includeTransferRecipientReverseProfile: Boolean = false
 ) {
-  transfers(filter: $filter, after: $after, limit: $limit) {
+  erc721Transfers(filter: $filter, after: $after, limit: $limit) {
     cursors {
       after
     }
     totalCount @include(if: $includeTotalCount)
-    transfers {
+    erc721Transfers {
       blockNumber
       contract @include(if: $includeTransferContract) {
         address
@@ -243,7 +243,6 @@ query transfers(
         ...NonFungibleTokenInfo
         ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
       }
-      
     }
   }
 }

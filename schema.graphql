@@ -55,7 +55,7 @@ type Media {
   "An arbitrary checksum for this media, useful for caching"
   checksum: String!
 
-  "Blurhash for showing a gradient while images are fetching, uses formatting from https://blurhash.io"
+  "Blurhash for showing a gradient while images are fetching, uses formatting from https:\/\/blurhash.io"
   blurhash: String
 
   "Original file stored on Basement's cdn"
@@ -189,27 +189,28 @@ input TokensFilter {
 "The `wei` scalar takes large integers and converts them to a base10 string. Due to javascript's limits, prices in wei can be inaccurate when passed as a string."
 scalar Wei
 
+type Erc721TransferPage {
+  "List of transfers within this page, use the `after` cursor to fetch more tokens"
+  erc721Transfers: [Erc721Transfer!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
+}
+
 "The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics"
 scalar LogTopic
 
 type RootQueryType {
   address(address: String!): Address
 
-  transfers(
-    filter: TransfersFilter
-    after: String
-    before: String
-    limit: Int
-  ): TransferPage!
+  erc721Transfers(filter: TransfersFilter, after: String, before: String, limit: Int): Erc721TransferPage!
 
   token(contract: String!, tokenId: String!): NonFungibleToken
 
-  tokens(
-    filter: TokensFilter
-    after: String
-    before: String
-    limit: Int
-  ): TokensPage!
+  tokens(filter: TokensFilter, after: String, before: String, limit: Int): TokensPage!
 
   "Query a transaction"
   transaction(hash: String!): Transaction
@@ -338,17 +339,6 @@ input TransactionFilter {
   methodIds: [String!]
 }
 
-type TransferPage {
-  "List of transfers within this page, use the `after` cursor to fetch more tokens"
-  transfers: [Erc721Transfer!]!
-
-  "Cursors for use in Pagination"
-  cursors: Cursors!
-
-  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
-  totalCount: Int!
-}
-
 """
 The `Json` scalar type represents arbitrary json string data, represented as UTF-8
 character sequences. The Json type is most often used to represent a free-form
@@ -392,7 +382,7 @@ type Profile {
 
   "Returns any text record stored in ENS with the given key."
   text(
-    "Key to return a text record for. For common keys, see: https://docs.ens.domains/ens-improvement-proposals/ensip-5-text-records#global-keys"
+    "Key to return a text record for. For common keys, see: https:\/\/docs.ens.domains\/ens-improvement-proposals\/ensip-5-text-records#global-keys"
     key: String!
   ): String
 }

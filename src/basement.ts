@@ -15,7 +15,7 @@ import {
   TransactionLogsQueryOptions,
   TransactionQueryOptions,
   TransactionsQueryOptions,
-  TransfersQueryOptions,
+  Erc721TransfersQueryOptions,
 } from "./types";
 import isPropertyIncluded from "./utils/isPropertyIncluded";
 import {
@@ -187,7 +187,7 @@ export class BasementSDK {
     return nonFungibleTokenRefresh;
   }
 
-  public async transfers(params?: TransfersQueryOptions) {
+  public async erc721Transfers(params?: Erc721TransfersQueryOptions) {
     const { include, after, filter, limit } = params || {};
     const includeTransferContract = !!include?.contract;
     const includeTotalCount = include?.totalCount;
@@ -225,7 +225,7 @@ export class BasementSDK {
       "reverseProfile"
     );
 
-    const { transfers } = await this.sdk.transfers({
+    const { erc721Transfers } = await this.sdk.erc721Transfers({
       after,
       filter,
       limit,
@@ -247,6 +247,6 @@ export class BasementSDK {
       ...parsedTransactionsProps,
     });
 
-    return transfers;
+    return erc721Transfers;
   }
 }

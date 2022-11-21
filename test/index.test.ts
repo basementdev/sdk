@@ -164,7 +164,7 @@ describe("Basement SDK", () => {
   });
 
   test("transfers query", async () => {
-    const data = await sdk.transfers({
+    const data = await sdk.erc721Transfers({
       include: {
         totalCount: true,
         contract: true,
@@ -179,7 +179,7 @@ describe("Basement SDK", () => {
       },
     });
     expect(data.totalCount).toBeDefined();
-    const transfer = data.transfers[0];
+    const transfer = data.erc721Transfers[0];
     expect(transfer.contract?.address).toBeDefined();
     expect(transfer.from?.address).toBeDefined();
     expect(transfer.to?.address).toBeDefined();
