@@ -1,6 +1,5 @@
 import {
   TokensFilter,
-  TokensQueryVariables,
   TransactionLogsQueryVariables,
   TransactionsQueryVariables,
   Erc721TransfersQueryVariables,
@@ -15,16 +14,19 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
-/**
- * Generates the include depending if the query is meant for retrieving a single or multiple objects
- */
-export type GenerateIncludeQueryOptions<
-  K,
-  T extends "single" | "multiple",
-  Extra = { totalCount?: boolean }
-> = {
+export type PluralQueryOptions<K, T> = {
+  /** Filter option(s) */
+  filter?: K;
+  /** Cursor used for pagination. To go to the next page, provide the value returned from the cursor (if available) */
+  after?: string;
+  limit?: number;
+  /** Whether to reverse the default sort order of the underlying list */
+  reversed?: boolean;
   /** Includes more data in the response */
-  include?: T extends "single" ? K : K & Extra;
+  include?: T & {
+    /** Whether to include the total count of items. It's capped at `10,000` for performance reasons */
+    totalCount?: boolean;
+  };
 };
 
 export type IncludeFullProfileOptions = RequireAtLeastOne<{
@@ -40,21 +42,25 @@ export type IncludeOnlyReverseProfile = Pick<
 >;
 
 export type SalesFilterOptions = {
+  /** Whether to include the maker of this sale as defined by the implementing marketplace contract */
   maker: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the taker of this sale as defined by the implementing marketplace contract */
   taker: IncludeOnlyReverseProfile | boolean;
 };
 
 export type TokenVariables = {
-  /** contract hex-address */
+  /** Token's contract hex-address or ENS name */
   contract: string;
-  /** token ID */
+  /** Token ID */
   tokenId?: string;
 };
 
 export type TransactionQueryIncludeOptions = RequireAtLeastOne<{
   /** Whether to include the logs that happened within the transaction - defaults to `false` */
   logs: boolean;
+  /** Whether to include the sender's address that initiated this transaction */
   sender: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the address the transaction was sent to. This can be another wallet, a contract, or `null` in the case of a contract creation. */
   recipient: IncludeOnlyReverseProfile | boolean;
 }>;
 
@@ -86,44 +92,14 @@ export type TokensQueryFilterOptions = {
   ownerAddresses: string;
 };
 
-export type TokenQueryOptions = GenerateIncludeQueryOptions<
-  TokenQueryIncludeOptions,
-  "single"
-> &
-  TokenVariables;
-
-export type TokensQueryOptions = GenerateIncludeQueryOptions<
-  TokenQueryIncludeOptions,
-  "multiple"
-> & {
-  /** Filter option(s) */
-  filter?: TokensFilter;
-  after?: TokensQueryVariables["after"];
-  /** Maximum number of tokens to return - defaults to `50` */
-  limit?: TokensQueryVariables["limit"];
+export type TokenQueryOptions = TokenVariables & {
+  include?: TokenQueryIncludeOptions;
 };
 
-export type TokenTransfersQueryFilterOptions = TokensQueryFilterOptions;
-
-export type TokenTransfersQueryIncludeOptions = {
-  /** Whether to include ERC721 metadata, like `tokenId`, `attributes`, `contractAddress`, etc - defaults to `false` */
-  erc721Metadata?: boolean;
-  /** Whether to include from's information in the response. */
-  from?: IncludeFullProfileOptions & TokensIncludeOption;
-  /** Whether to include to's information in the response. */
-  to?: IncludeFullProfileOptions & TokensIncludeOption;
-};
-
-export type TokenTransfersQueryOptions = {
-  /** Filter option(s) */
-  filter: TokenTransfersQueryFilterOptions;
-  /** Cursor used for pagination. To go the next page, provide the given cursor from the response */
-  cursor?: string;
-  /** Maximum number of token transfers to return - defaults to `50` */
-  limit?: number;
-  /** Includes more data in the response */
-  include?: TokenTransfersQueryIncludeOptions;
-};
+export type TokensQueryOptions = Omit<
+  PluralQueryOptions<TokensFilter, TokenQueryIncludeOptions>,
+  "reversed"
+>;
 
 export type AddressQueryIncludeOptions = TokensIncludeOption &
   IncludeFullProfileOptions;
@@ -138,15 +114,8 @@ export type AddressQueryOptions = {
 export type TransactionQueryOptions = {
   /** Transaction hash */
   hash: string;
+  /** Includes more data in the response */
   include?: TransactionQueryIncludeOptions;
-};
-
-export type PluralQueryOptions<K, T> = {
-  filter?: K;
-  after?: string;
-  limit?: number;
-  reversed?: boolean;
-  include?: T & { totalCount?: boolean };
 };
 
 export type TransactionsQueryOptions = PluralQueryOptions<
@@ -155,7 +124,9 @@ export type TransactionsQueryOptions = PluralQueryOptions<
 >;
 
 export type TransactionLogsQueryIncludeOptions = {
+  /** Whether to include the address of the contract which emitted this log */
   address?: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the transaction during which this log was emitted */
   transaction?: Omit<TransactionQueryIncludeOptions, "logs"> | boolean;
 };
 
@@ -165,11 +136,17 @@ export type TransactionLogsQueryOptions = PluralQueryOptions<
 >;
 
 export type Erc721TransfersQueryIncludeOptions = {
+  /** Whether to include the address containing this token's contract code */
   contract?: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the transaction in which this transfer occurred */
   transaction?: TransactionQueryIncludeOptions | boolean;
+  /** Whether to include the sale log found to be associated with this transfer */
   sale?: RequireAtLeastOne<SalesFilterOptions> | boolean;
+  /** Whether to include the metadata for the token which was transferred */
   token?: Pick<TokenQueryIncludeOptions, "media"> | boolean;
+  /** Whether to include the address sending this token, when this contains the "null address" this token was minted during this transfer  */
   from?: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the address receiving this token, when this contains the "null address" this token was burned during this transfer */
   to?: IncludeOnlyReverseProfile | boolean;
 };
 
