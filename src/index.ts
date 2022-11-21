@@ -4,7 +4,7 @@ export {
   AddressQuery,
   TokenQuery,
   TokensQuery,
-  TransfersQuery,
+  Erc721TransfersQuery,
   TransactionLogsQuery,
   TransactionQuery,
   TransactionsQuery,

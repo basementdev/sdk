@@ -16,13 +16,13 @@ const handleQuery = (async (req, res, ctx) => {
 }) as ResponseResolver<any>;
 
 const queries: Operation[] = [
-  { type: "query", name: "address" },
+{ type: "query", name: "address" },
   { type: "query", name: "token" },
   { type: "query", name: "tokens" },
   { type: "query", name: "transaction" },
   { type: "query", name: "transactions" },
   { type: "query", name: "transactionLogs" },
-  { type: "query", name: "transfers" },
+  { type: "query", name: "erc721Transfers" },
   { type: "mutation", name: "nonFungibleTokenRefresh" },
 ];
 
