@@ -16,7 +16,7 @@ const handleQuery = (async (req, res, ctx) => {
 }) as ResponseResolver<any>;
 
 const queries: Operation[] = [
-{ type: "query", name: "address" },
+  { type: "query", name: "address" },
   { type: "query", name: "token" },
   { type: "query", name: "tokens" },
   { type: "query", name: "transaction" },
