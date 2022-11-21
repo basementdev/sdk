@@ -118,6 +118,9 @@ export class BasementSDK {
     return data.address;
   }
 
+  /**
+   * Queries information about a transaction
+   */
   public async transaction({
     hash,
     include,
@@ -129,6 +132,9 @@ export class BasementSDK {
     return transaction;
   }
 
+  /**
+   * Query transactions that satisfy the given filter(s)
+   */
   public async transactions({
     filter,
     after,
@@ -148,6 +154,9 @@ export class BasementSDK {
     return transactions;
   }
 
+  /**
+   * Query transaction logs that satisfy the given filter(s)
+   */
   public async transactionLogs({
     after,
     filter,
@@ -176,6 +185,9 @@ export class BasementSDK {
     return transactionLogs;
   }
 
+  /**
+   * Refreshes metadata of a specific NFT
+   */
   public async nonFungibleTokenRefresh({
     contract,
     tokenId,
@@ -187,6 +199,9 @@ export class BasementSDK {
     return nonFungibleTokenRefresh;
   }
 
+  /**
+   * Query ERC721 Transfers that satisfy the given filter(s)
+   */
   public async erc721Transfers(params?: Erc721TransfersQueryOptions) {
     const { include, after, filter, limit } = params || {};
     const includeTransferContract = !!include?.contract;
