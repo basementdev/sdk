@@ -9,7 +9,7 @@
     "prepublishOnly": "yarn test && yarn build",
     "build": "tsc",
     "generate": "graphql-codegen",
-    "format": "npx prettier --write src/**/*.ts",
+    "format": "npx prettier --write \"(src|test)/**/*.ts\"",
     "lint": "npx eslint src/**/*.ts",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
