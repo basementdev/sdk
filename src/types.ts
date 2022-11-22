@@ -49,9 +49,9 @@ export type SalesFilterOptions = {
 };
 
 export type TokenVariables = {
-  /** Token's contract hex-address or ENS name */
+  /** Token's contract hex-address or ENS name. */
   contract: string;
-  /** Token ID */
+  /** The token ID within the contract. */
   tokenId?: string;
 };
 
