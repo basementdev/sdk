@@ -1,4 +1,5 @@
 import { BasementSDK } from "../src";
+import { ExcludeTransferFilter } from "../src/sdk";
 
 describe("Basement SDK", () => {
   const TOKEN_CONTRACT_ADDRESS = "0xa97d3eb991303cf3b9b759bd026bacb55256e9db";
@@ -13,7 +14,7 @@ describe("Basement SDK", () => {
       tokenId: TOKEN_ID,
       include: {
         media: true,
-        mintTransaction: { logs: true, sender: true, recipient: true },
+        mintTransaction: { logs: true, from: true, to: true },
         sales: {
           maker: true,
           taker: true,
@@ -125,17 +126,19 @@ describe("Basement SDK", () => {
     expect(keys).not.toEqual(expect.arrayContaining(includeKeys));
     data = await sdk.transaction({
       hash: TXN_HASH,
-      include: { logs: true, recipient: true, sender: true },
+      include: { logs: true, from: true, to: true },
     });
     keys = Object.keys(data);
     expect(keys).toEqual(expect.arrayContaining(includeKeys));
   });
 
   test("transactions query", async () => {
-    let data = await sdk.transactions({ include: { totalCount: true } });
+    let data = await sdk.transactions({
+      include: { totalCount: true, from: true, to: true },
+    });
     expect(data?.totalCount).toBeDefined();
     data = await sdk.transactions({
-      include: { logs: true, recipient: true, sender: true },
+      include: { logs: true, from: true, to: true },
     });
     expect(data?.totalCount).toBeUndefined();
     const tx = data?.transactions[0];
@@ -148,7 +151,7 @@ describe("Basement SDK", () => {
       include: {
         address: true,
         totalCount: true,
-        transaction: { recipient: true, sender: true },
+        transaction: { from: true, to: true },
       },
     });
     expect(data?.totalCount).toBeDefined();
@@ -163,6 +166,12 @@ describe("Basement SDK", () => {
 
   test("transfers query", async () => {
     const data = await sdk.erc721Transfers({
+      filter: {
+        exclude: [
+          ExcludeTransferFilter.Airdrop,
+          ExcludeTransferFilter.ZeroEthTransfer,
+        ],
+      },
       include: {
         totalCount: true,
         contract: true,
@@ -173,7 +182,7 @@ describe("Basement SDK", () => {
           taker: { reverseProfile: false },
         },
         token: { media: true },
-        transaction: { logs: true, recipient: true, sender: true },
+        transaction: { logs: true, from: true, to: true },
       },
     });
     expect(data.totalCount).toBeDefined();

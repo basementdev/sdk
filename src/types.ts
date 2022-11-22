@@ -16,7 +16,7 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
 
 export type PluralQueryOptions<K, T> = {
   /** Filter option(s) */
-  filter?: K;
+  filter?: RequireAtLeastOne<K>;
   /** Cursor used for pagination. To go to the next page, provide the value returned from the cursor (if available) */
   after?: string;
   limit?: number;
@@ -55,14 +55,14 @@ export type TokenVariables = {
   tokenId?: string;
 };
 
-export type TransactionQueryIncludeOptions = RequireAtLeastOne<{
+export type TransactionQueryIncludeOptions = {
   /** Whether to include the logs that happened within the transaction - defaults to `false` */
   logs: boolean;
   /** Whether to include the sender's address that initiated this transaction */
-  sender: IncludeOnlyReverseProfile | boolean;
+  from: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the address the transaction was sent to. This can be another wallet, a contract, or `null` in the case of a contract creation. */
-  recipient: IncludeOnlyReverseProfile | boolean;
-}>;
+  to: IncludeOnlyReverseProfile | boolean;
+};
 
 export type TokenQueryIncludeOptions = {
   /** Whether to include owner's information in the response. */
@@ -118,9 +118,11 @@ export type TransactionQueryOptions = {
   include?: TransactionQueryIncludeOptions;
 };
 
-export type TransactionsQueryOptions = PluralQueryOptions<
-  TransactionsQueryVariables["filter"],
-  Partial<TransactionQueryIncludeOptions>
+export type TransactionsQueryOptions = RequireAtLeastOne<
+  PluralQueryOptions<
+    TransactionsQueryVariables["filter"],
+    Partial<TransactionQueryIncludeOptions>
+  >
 >;
 
 export type TransactionLogsQueryIncludeOptions = {

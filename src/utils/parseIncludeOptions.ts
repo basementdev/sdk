@@ -43,11 +43,11 @@ export function parseTokenIncludeOptions(
   const includeMint = !!opts.mintTransaction;
   const includeTransactionRecipient = isPropertyIncluded(
     opts.mintTransaction,
-    "recipient"
+    "to"
   );
   const includeTransactionSender = isPropertyIncluded(
     opts.mintTransaction,
-    "sender"
+    "from"
   );
   const includeSales = !!opts.sales;
   const includeTokenUri = opts.tokenUri;
@@ -90,8 +90,8 @@ export function parseTransactionIncludeOptions(
   opts?: Partial<TransactionQueryIncludeOptions>
 ) {
   const includeTransactionLogs = opts?.logs;
-  const includeTransactionRecipient = !!opts?.recipient;
-  const includeTransactionSender = !!opts?.sender;
+  const includeTransactionRecipient = !!opts?.to;
+  const includeTransactionSender = !!opts?.from;
   return {
     includeTransactionLogs,
     includeTransactionRecipient,

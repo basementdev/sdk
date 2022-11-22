@@ -78,12 +78,10 @@ export class BasementSDK {
   /**
    * Query tokens that satisfy the given filter(s)
    */
-  public async tokens({
-    filter,
-    after,
-    include,
-    limit,
-  }: TokensQueryOptions): Promise<TokensQuery["tokens"]> {
+  public async tokens(
+    params?: TokensQueryOptions
+  ): Promise<TokensQuery["tokens"]> {
+    const { after, filter, include, limit } = params || {};
     const includeTotalCount = include?.totalCount;
     const data = await this.sdk.tokens({
       filter,
@@ -140,18 +138,13 @@ export class BasementSDK {
   /**
    * Query transactions that satisfy the given filter(s)
    */
-  public async transactions({
-    filter,
-    after,
-    limit,
-    reversed,
-    include,
-  }: TransactionsQueryOptions) {
+  public async transactions(params?: TransactionsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const { transactions } = await this.sdk.transactions({
       limit,
       reversed,
-      filter,
+      filter: filter as any,
       after,
       includeTotalCount,
       ...parseTransactionIncludeOptions(include),
@@ -162,13 +155,8 @@ export class BasementSDK {
   /**
    * Query transaction logs that satisfy the given filter(s)
    */
-  public async transactionLogs({
-    after,
-    filter,
-    include,
-    limit,
-    reversed,
-  }: TransactionLogsQueryOptions) {
+  public async transactionLogs(params?: TransactionLogsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const includeContractReverseProfile = !!include?.address;
     const includeTransaction = !!include.transaction;
@@ -178,7 +166,7 @@ export class BasementSDK {
     }
     const { transactionLogs } = await this.sdk.transactionLogs({
       after,
-      filter,
+      filter: filter as any,
       limit,
       reversed,
       includeTotalCount,
@@ -247,7 +235,7 @@ export class BasementSDK {
 
     const { erc721Transfers } = await this.sdk.erc721Transfers({
       after,
-      filter,
+      filter: filter as any,
       limit,
       includeMaker,
       includeTaker,

@@ -42,14 +42,13 @@ Queries information about a specific token
 #### Example usage
 
 ```typescript
-const { token } = await sdk.token({
+const token = await sdk.token({
   contract: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
   tokenId: "660",
+  media: true,
+  sales: true,
   include: {
-    owner: {
-      profile: true,
-      reverseProfile: true,
-    },
+    owner: true,
   },
 });
 ```
@@ -73,15 +72,9 @@ Query tokens that satisfy the given filter(s)
 #### Example usage
 
 ```typescript
-const { tokens } = await sdk.tokens({
-  filter: { contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D" },
-  limit: 5,
-  include: {
-    owner: {
-      profile: true,
-      reverseProfile: true,
-    },
-  },
+const data = await sdk.tokens({
+  filter: { ownerAddresses: ["vitalik.eth"] },
+  include: { owner: true },
 });
 ```
 
@@ -105,8 +98,8 @@ Queries information about an address
 #### Example usage
 
 ```typescript
-const { address } = await sdk.address({
-  name: "vitalik.eth",
+const data = await sdk.address({
+  address: "vitalik.eth",
   include: { profile: true, tokens: { limit: 5 } },
 });
 ```
@@ -130,7 +123,7 @@ Refreshes metadata of a specific token
 #### Example usage
 
 ```typescript
-const { tokenMetadataRefresh } = await sdk.tokenMetadataRefresh({
+const data = await sdk.nonFungibleTokenRefresh({
   contract: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
   tokenId: "660",
 });
@@ -151,21 +144,24 @@ Query token transfers that satisfy the given filter(s)
 #### Example usage
 
 ```typescript
-const { tokenTransfers } = await sdk.tokenTransfers({
-  filter: { contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D" },
-  limit: 5,
+const data = await sdk.erc721Transfers({
+  filter: {
+    exclude: [
+      ExcludeTransferFilter.Airdrop,
+      ExcludeTransferFilter.ZeroEthTransfer,
+    ],
+  },
   include: {
-    erc721Metadata: true,
-    from: {
-      profile: true,
-      reverseProfile: true,
-      tokens: {},
+    totalCount: true,
+    contract: true,
+    from: true,
+    to: true,
+    sale: {
+      maker: { reverseProfile: true },
+      taker: { reverseProfile: false },
     },
-    to: {
-      profile: true,
-      reverseProfile: true,
-      tokens: {},
-    },
+    token: true,
+    transaction: true,
   },
 });
 ```
