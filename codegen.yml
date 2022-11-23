@@ -1,8 +1,11 @@
 schema: ./schema.graphql
-documents: ./src/*.graphql
+documents: ./src/graphql/*.graphql
 generates:
   ./src/sdk.ts:
     plugins:
       - typescript
       - typescript-graphql-request
       - typescript-operations
+    config:
+      skipTypename: true
+      avoidOptionals: true

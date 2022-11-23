@@ -2,8 +2,12 @@ export * from "./basement";
 export * from "./types";
 export {
   AddressQuery,
+  ExcludeTransferFilter,
   TokenQuery,
   TokensQuery,
-  TokenTransfersQuery,
-  TokenMetadataRefreshMutation,
+  Erc721TransfersQuery,
+  TransactionLogsQuery,
+  TransactionQuery,
+  TransactionsQuery,
+  NonFungibleTokenRefreshMutation,
 } from "./sdk";

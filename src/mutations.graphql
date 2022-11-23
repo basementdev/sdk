@@ -1,5 +1,0 @@
-mutation tokenMetadataRefresh($contract: String!, $id: Int, $tokenId: String) {
-  tokenMetadataRefresh(contract: $contract, id: $id, tokenId: $tokenId) {
-    ...TokenInfo
-  }
-}

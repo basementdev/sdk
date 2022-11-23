@@ -1,0 +1,402 @@
+query address(
+  $address: String!
+  $tokensLimit: Int = 10
+  $includeProfile: Boolean = false
+  $includeReverseProfile: Boolean = false
+  $includeTokens: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeTokenMint: Boolean = false
+  $includeTokenMedia: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+) {
+  address(address: $address) {
+    address
+    profile @include(if: $includeProfile) {
+      ...GlobalKeys
+    }
+    reverseProfile @include(if: $includeReverseProfile) {
+      ...GlobalKeys
+    }
+    tokens(limit: $tokensLimit) @include(if: $includeTokens) {
+      ...NonFungibleTokenInfo
+      ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+      sales @include(if: $includeTokenSales) {
+        ...NonFungibleTokenSalesInfo
+      }
+      ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+      tokenUri @include(if: $includeTokenUri)
+    }
+  }
+}
+
+query token(
+  $contract: String!
+  $tokenId: String!
+  $includeOwner: Boolean = false
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeTokenMint: Boolean = false
+  $includeTokenMedia: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+) {
+  token(contract: $contract, tokenId: $tokenId) {
+    ...NonFungibleTokenInfo
+    ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+    ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+    sales @include(if: $includeTokenSales) {
+      ...NonFungibleTokenSalesInfo
+    }
+    ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+    tokenUri @include(if: $includeTokenUri)
+  }
+}
+
+query tokens(
+  $filter: TokensFilter
+  $limit: Int = 50
+  $after: String
+  $includeTotalCount: Boolean = false
+  $includeOwner: Boolean = false
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeTokenMint: Boolean = false
+  $includeTokenMedia: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
+) {
+  tokens(filter: $filter, limit: $limit, after: $after) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    tokens {
+      ...NonFungibleTokenInfo
+      ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
+      ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+      ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+      tokenUri @include(if: $includeTokenUri)
+      sales @include(if: $includeTokenSales) {
+        ...NonFungibleTokenSalesInfo
+      }
+    }
+  }
+}
+
+query transaction(
+  $hash: String!
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+) {
+  transaction(hash: $hash) {
+    ...TransactionInfo
+  }
+}
+
+query transactions(
+  $filter: TransactionFilter
+  $after: String
+  $limit: Int = 50
+  $reversed: Boolean = false
+  $includeTotalCount: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionLogs: Boolean = false
+) {
+  transactions(
+    filter: $filter
+    after: $after
+    limit: $limit
+    reversed: $reversed
+  ) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    transactions {
+      ...TransactionInfo
+    }
+  }
+}
+
+query transactionLogs(
+  $after: String
+  $includeTotalCount: Boolean = false
+  $filter: TransactionLogFilter
+  $limit: Int = 50
+  $reversed: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeContractReverseProfile: Boolean = false
+  $includeTransaction: Boolean = false
+) {
+  transactionLogs(
+    after: $after
+    limit: $limit
+    filter: $filter
+    reversed: $reversed
+  ) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    transactionLogs {
+      address {
+        address
+        reverseProfile @include(if: $includeContractReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      data
+      logIndex
+      removed
+      topics
+      transactionHash
+      blockNumber
+      transaction @include(if: $includeTransaction) {
+        ...TransactionInfo
+      }
+    }
+  }
+}
+
+query erc721Transfers(
+  $filter: TransfersFilter
+  $after: String
+  $limit: Int = 50
+  $includeTotalCount: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
+  $includeTransactionLogs: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeToken: Boolean = false
+  $includeTokenMedia: Boolean = false
+  $includeTokenMint: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTransferContract: Boolean = false
+  $includeTransferContractReverseProfile: Boolean = false
+  $includeSale: Boolean = false
+  $includeErc721TransferSaleTaker: Boolean = false
+  $includeErc721TransferSaleMaker: Boolean = false
+  $includeErc721TransferSaleMakerReverseProfile: Boolean = false
+  $includeErc721TransferSaleTakerReverseProfile: Boolean = false
+  $includeTransaction: Boolean = false
+  $includeTransferSender: Boolean = false
+  $includeTransferSenderReverseProfile: Boolean = false
+  $includeTransferRecipient: Boolean = false
+  $includeTransferRecipientReverseProfile: Boolean = false
+) {
+  erc721Transfers(filter: $filter, after: $after, limit: $limit) {
+    cursors {
+      after
+    }
+    totalCount @include(if: $includeTotalCount)
+    erc721Transfers {
+      blockNumber
+      contract @include(if: $includeTransferContract) {
+        address
+        reverseProfile @include(if: $includeTransferContractReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      sale @include(if: $includeSale) {
+        ...NonFungibleErc721TransferSaleInfo
+      }
+      transaction @include(if: $includeTransaction) {
+        ...TransactionInfo
+      }
+      from @include(if: $includeTransferSender) {
+        address
+        reverseProfile @include(if: $includeTransferSenderReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      to @include(if: $includeTransferRecipient) {
+        address
+        reverseProfile @include(if: $includeTransferRecipientReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      isAirdrop
+      logIndex
+      token @include(if: $includeToken) {
+        ...NonFungibleTokenInfo
+        ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+        ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+        tokenUri @include(if: $includeTokenUri)
+        sales @include(if: $includeTokenSales) {
+          ...NonFungibleTokenSalesInfo
+        }
+      }
+    }
+  }
+}
+
+fragment NonFungibleTokenMintInfo on NonFungibleToken {
+  mintPrice
+  mintTransaction {
+    ...TransactionInfo
+  }
+}
+
+fragment TransactionInfo on Transaction {
+  blockNumber
+  blockTimestamp
+  effectiveGasPrice
+  events {
+    transactionHash
+  }
+  gas
+  gasPaid
+  gasUsed
+  gasPrice
+  hash
+  id
+  index
+  input
+  from @include(if: $includeTransactionSender) {
+    address
+    reverseProfile {
+      ...GlobalKeys
+    }
+  }
+  to @include(if: $includeTransactionRecipient) {
+    address
+    reverseProfile {
+      ...GlobalKeys
+    }
+  }
+  value
+  methodId
+  status
+  logs @include(if: $includeTransactionLogs) {
+    data
+    logIndex
+    removed
+    topics
+  }
+}
+
+fragment NonFungibleTokenSaleInfoBase on NonFungibleTokenSale {
+  currencyContract {
+    address
+  }
+  eventIndex
+  logIndex
+
+  marketplace
+  marketplaceContract {
+    address
+  }
+  price
+}
+
+fragment NonFungibleTokenSalesInfo on NonFungibleTokenSale {
+  ...NonFungibleTokenSaleInfoBase
+  maker @include(if: $includeTokenSalesMaker) {
+    address
+    reverseProfile @include(if: $includeTokenSalesMakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+
+  taker @include(if: $includeTokenSalesTaker) {
+    address
+    reverseProfile @include(if: $includeTokenSalesTakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+}
+
+fragment NonFungibleErc721TransferSaleInfo on NonFungibleTokenSale {
+  ...NonFungibleTokenSaleInfoBase
+  maker @include(if: $includeErc721TransferSaleMaker) {
+    address
+    reverseProfile @include(if: $includeErc721TransferSaleMakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+
+  taker @include(if: $includeErc721TransferSaleTaker) {
+    address
+    reverseProfile @include(if: $includeErc721TransferSaleTakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+}
+
+fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
+  owner {
+    address
+    profile @include(if: $includeOwnerProfile) {
+      ...GlobalKeys
+    }
+    reverseProfile @include(if: $includeOwnerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+}
+
+fragment NonFungibleTokenMediaInfo on NonFungibleToken {
+  animation {
+    ...MediaInfo
+  }
+  image {
+    ...MediaInfo
+  }
+  imageStorageType
+  backgroundColor
+  youtubeUrl
+}
+
+fragment NonFungibleTokenInfo on NonFungibleToken {
+  contract
+  description
+  name
+  tokenId
+  externalUrl
+}
+
+fragment MediaInfo on Media {
+  blurhash
+  checksum
+  height
+  width
+  url
+  smallUrl
+  thumbnailUrl
+  largeUrl
+  mimeType
+}
+
+fragment GlobalKeys on Profile {
+  name
+  avatar: text(key: "avatar")
+}

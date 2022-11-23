@@ -1,0 +1,3 @@
+mutation nonFungibleTokenRefresh($contract: String!, $tokenId: String!) {
+  nonFungibleTokenRefresh(contract: $contract, tokenId: $tokenId)
+}

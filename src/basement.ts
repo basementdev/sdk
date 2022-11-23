@@ -2,147 +2,266 @@ import { GraphQLClient } from "graphql-request";
 import {
   AddressQuery,
   getSdk,
-  TokenMetadataRefreshMutation,
+  NonFungibleTokenRefreshMutationVariables,
+  SdkFunctionWrapper,
   TokenQuery,
   TokensQuery,
-  TokenTransfersQuery,
+  TransactionQuery,
 } from "./sdk";
 import {
   AddressQueryOptions,
   TokenQueryOptions,
   TokensQueryOptions,
-  TokenTransfersQueryOptions,
-  TokenVariables,
+  TransactionLogsQueryOptions,
+  TransactionQueryOptions,
+  TransactionsQueryOptions,
+  Erc721TransfersQueryOptions,
 } from "./types";
+import isPropertyIncluded from "./utils/isPropertyIncluded";
+import {
+  parseSaleIncludeOptions,
+  parseTokenIncludeOptions,
+  parseTransactionIncludeOptions,
+} from "./utils/parseIncludeOptions";
 
-export const DEFAULT_ENDPOINT = "https://api.basement.dev/graphiql";
+export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
+
+type SDKOptions = {
+  endpoint?: string;
+  apiKey?: string;
+};
 
 export class BasementSDK {
+  private apiKey?: string;
+
   private sdk: ReturnType<typeof getSdk>;
 
-  constructor(endpoint: string = DEFAULT_ENDPOINT) {
+  constructor(opts?: SDKOptions) {
+    const { apiKey, endpoint = DEFAULT_ENDPOINT } = opts || {};
     const client = new GraphQLClient(endpoint);
-    this.sdk = getSdk(client);
+    this.apiKey = apiKey;
+    this.sdk = getSdk(client, this.withWrapper);
   }
 
-  /**
-   * Queries information about an address
-   */
-  public async address({
-    name,
-    include,
-  }: AddressQueryOptions): Promise<AddressQuery> {
-    const includeTokens = !!include?.tokens;
-    const tokensLimit = include?.tokens?.limit;
-    const filterSuspectedScams = include?.tokens?.filterSuspectedScams;
-    const includeProfile = include?.profile;
-    const includeReverseProfile = include?.reverseProfile;
-    return this.sdk.address({
-      name,
-      filterSuspectedScams,
-      includeProfile,
-      includeReverseProfile,
-      includeTokens,
-      tokensLimit,
-    });
-  }
+  private withWrapper: SdkFunctionWrapper = async <T>(
+    // eslint-disable-next-line no-unused-vars
+    action: (requestHeaders?: Record<string, string>) => Promise<T>
+  ): Promise<T> => {
+    const headers: Record<string, string> = {
+      "X-Basement-SDK": "true",
+    };
+    if (this.apiKey) {
+      headers["x-basement-api-key"] = this.apiKey;
+    }
+
+    const result = await action(headers);
+    return result;
+  };
 
   /**
    * Queries information about a specific token
    */
   public async token({
     contract,
-    id,
     tokenId,
     include,
-  }: TokenQueryOptions): Promise<TokenQuery> {
-    const includeOwnerInfo = !!include?.owner;
-    const includeOwnerProfile = include?.owner?.profile;
-    const includeOwnerReverseProfile = include?.owner?.reverseProfile;
-    return this.sdk.token({
+  }: TokenQueryOptions): Promise<TokenQuery["token"]> {
+    const data = await this.sdk.token({
       contract,
-      id,
-      includeOwnerInfo,
-      includeOwnerProfile,
-      includeOwnerReverseProfile,
       tokenId,
+      ...parseTokenIncludeOptions(include),
     });
-  }
-
-  /**
-   * Refreshes metadata of a specific token
-   */
-  public async tokenMetadataRefresh({
-    contract,
-    id,
-    tokenId,
-  }: TokenVariables): Promise<TokenMetadataRefreshMutation> {
-    return this.sdk.tokenMetadataRefresh({
-      contract,
-      id,
-      tokenId,
-    });
+    return data.token;
   }
 
   /**
    * Query tokens that satisfy the given filter(s)
    */
-  public async tokens({
-    filter,
-    cursor,
-    include,
-    limit = 10,
-  }: TokensQueryOptions): Promise<TokensQuery> {
-    const includeOwnerInfo = !!include?.owner;
-    const includeOwnerProfile = include?.owner?.profile;
-    const includeOwnerReverseProfile = include?.owner?.reverseProfile;
-    return this.sdk.tokens({
+  public async tokens(
+    params?: TokensQueryOptions
+  ): Promise<TokensQuery["tokens"]> {
+    const { after, filter, include, limit } = params || {};
+    const includeTotalCount = include?.totalCount;
+    const data = await this.sdk.tokens({
       filter,
-      cursor,
-      includeOwnerInfo,
-      includeOwnerProfile,
-      includeOwnerReverseProfile,
+      after,
+      includeTotalCount,
       limit,
+      ...parseTokenIncludeOptions(include),
     });
+    return data.tokens;
   }
 
   /**
-   * Query token transfers that satisfy the given filter(s)
+   * Queries information about an address
    */
-  public async tokenTransfers({
-    filter,
-    cursor,
+  public async address({
+    address,
     include,
-    limit = 10,
-  }: TokenTransfersQueryOptions): Promise<TokenTransfersQuery> {
-    const includeERC721Metadata = include?.erc721Metadata;
-    const includeFromProfile = include?.from?.profile;
-    const includeFromReverseProfile = include?.from?.reverseProfile;
-    const includeFromTokensInfo = !!include?.from?.tokens;
-    const fromTokensFilterSuspectedScam =
-      include?.from?.tokens?.filterSuspectedScams;
-    const fromTokensLimit = include?.from?.tokens?.limit;
-    const includeToProfile = include?.to?.profile;
-    const includeToReverseProfile = include?.to?.reverseProfile;
-    const includeToTokensInfo = !!include?.to?.tokens;
-    const toTokensFilterSuspectedScam =
-      include?.to?.tokens?.filterSuspectedScams;
-    const toTokensLimit = include?.to?.tokens?.limit;
-    return this.sdk.tokenTransfers({
-      filter,
-      cursor,
-      includeERC721Metadata,
-      includeFromProfile,
-      includeFromReverseProfile,
-      includeFromTokensInfo,
-      fromTokensFilterSuspectedScam,
-      fromTokensLimit,
-      includeToProfile,
-      includeToReverseProfile,
-      includeToTokensInfo,
-      toTokensLimit,
-      toTokensFilterSuspectedScam,
-      limit,
+  }: AddressQueryOptions): Promise<AddressQuery["address"]> {
+    const includeTokens = !!include?.tokens;
+    let tokensLimit = 10;
+    let tokensIncludeOptions = {};
+    if (typeof include?.tokens !== "boolean" && includeTokens) {
+      tokensLimit = include.tokens.limit;
+      tokensIncludeOptions = parseTokenIncludeOptions(include.tokens);
+    }
+    const includeProfile = include?.profile;
+    const includeReverseProfile = include?.reverseProfile;
+    const data = await this.sdk.address({
+      address,
+      includeProfile,
+      includeReverseProfile,
+      includeTokens,
+      tokensLimit,
+      ...tokensIncludeOptions,
     });
+
+    return data.address;
+  }
+
+  /**
+   * Queries information about a transaction
+   */
+  public async transaction({
+    hash,
+    include,
+  }: TransactionQueryOptions): Promise<TransactionQuery["transaction"]> {
+    const { transaction } = await this.sdk.transaction({
+      hash,
+      ...parseTransactionIncludeOptions(include),
+    });
+    return transaction;
+  }
+
+  /**
+   * Query transactions that satisfy the given filter(s)
+   */
+  public async transactions(params?: TransactionsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
+    const includeTotalCount = include?.totalCount;
+    const { transactions } = await this.sdk.transactions({
+      limit,
+      reversed,
+      filter: filter as any,
+      after,
+      includeTotalCount,
+      ...parseTransactionIncludeOptions(include),
+    });
+    return transactions;
+  }
+
+  /**
+   * Query transaction logs that satisfy the given filter(s)
+   */
+  public async transactionLogs(params?: TransactionLogsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
+    const includeTotalCount = include?.totalCount;
+    const includeContractReverseProfile = !!include?.address;
+    const includeTransaction = !!include.transaction;
+    let transactionOpts = {};
+    if (typeof include?.transaction !== "boolean") {
+      transactionOpts = parseTransactionIncludeOptions(include.transaction);
+    }
+    const { transactionLogs } = await this.sdk.transactionLogs({
+      after,
+      filter: filter as any,
+      limit,
+      reversed,
+      includeTotalCount,
+      includeContractReverseProfile,
+      includeTransaction,
+      ...transactionOpts,
+      includeTransactionLogs: false,
+    });
+    return transactionLogs;
+  }
+
+  /**
+   * Refreshes metadata of a specific NFT
+   */
+  public async nonFungibleTokenRefresh({
+    contract,
+    tokenId,
+  }: NonFungibleTokenRefreshMutationVariables) {
+    const { nonFungibleTokenRefresh } = await this.sdk.nonFungibleTokenRefresh({
+      contract,
+      tokenId,
+    });
+    return nonFungibleTokenRefresh;
+  }
+
+  /**
+   * Query ERC721 Transfers that satisfy the given filter(s)
+   */
+  public async erc721Transfers(params?: Erc721TransfersQueryOptions) {
+    const { include, after, filter, limit } = params || {};
+    const includeTransferContract = !!include?.contract;
+    const includeTotalCount = include?.totalCount;
+    const includeToken = !!include?.token;
+    const includeTransferContractReverseProfile = isPropertyIncluded(
+      include?.contract,
+      "reverseProfile"
+    );
+
+    let parsedTokenOpts = {};
+
+    if (typeof include?.token !== "boolean" && includeToken) {
+      parsedTokenOpts = parseTokenIncludeOptions(include.token);
+    }
+
+    const includeSale = !!include?.sale;
+    const {
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
+    } = parseSaleIncludeOptions(include.sale, "erc721TransferSale");
+
+    const includeTokenSales = isPropertyIncluded(include.token, "sales");
+
+    const includeTransaction = !!include?.transaction;
+    let parsedTransactionOpts = {};
+    if (typeof include?.transaction !== "boolean") {
+      parsedTransactionOpts = parseTransactionIncludeOptions(
+        include?.transaction
+      );
+    }
+
+    const includeTransferSender = !!include?.from;
+    const includeTransferSenderReverseProfile = isPropertyIncluded(
+      include?.from,
+      "reverseProfile"
+    );
+    const includeTransferRecipient = !!include?.to;
+    const includeTransferRecipientReverseProfile = isPropertyIncluded(
+      include?.to,
+      "reverseProfile"
+    );
+
+    const { erc721Transfers } = await this.sdk.erc721Transfers({
+      ...parsedTransactionOpts,
+      ...parsedTokenOpts,
+      after,
+      filter: filter as any,
+      limit,
+      includeSale,
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
+      includeTotalCount,
+      includeToken,
+      includeTokenSales,
+      includeTransaction,
+      includeTransferRecipient,
+      includeTransferSender,
+      includeTransferContract,
+      includeTransferContractReverseProfile,
+      includeTransferRecipientReverseProfile,
+      includeTransferSenderReverseProfile,
+    });
+
+    return erc721Transfers;
   }
 }
