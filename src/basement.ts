@@ -69,7 +69,6 @@ export class BasementSDK {
     const data = await this.sdk.token({
       contract,
       tokenId,
-
       ...parseTokenIncludeOptions(include),
     });
     return data.token;
@@ -78,12 +77,10 @@ export class BasementSDK {
   /**
    * Query tokens that satisfy the given filter(s)
    */
-  public async tokens({
-    filter,
-    after,
-    include,
-    limit,
-  }: TokensQueryOptions): Promise<TokensQuery["tokens"]> {
+  public async tokens(
+    params?: TokensQueryOptions
+  ): Promise<TokensQuery["tokens"]> {
+    const { after, filter, include, limit } = params || {};
     const includeTotalCount = include?.totalCount;
     const data = await this.sdk.tokens({
       filter,
@@ -103,7 +100,12 @@ export class BasementSDK {
     include,
   }: AddressQueryOptions): Promise<AddressQuery["address"]> {
     const includeTokens = !!include?.tokens;
-    const tokensLimit = include?.tokens?.limit;
+    let tokensLimit = 10;
+    let tokensIncludeOptions = {};
+    if (typeof include?.tokens !== "boolean" && includeTokens) {
+      tokensLimit = include.tokens.limit;
+      tokensIncludeOptions = parseTokenIncludeOptions(include.tokens);
+    }
     const includeProfile = include?.profile;
     const includeReverseProfile = include?.reverseProfile;
     const data = await this.sdk.address({
@@ -112,7 +114,7 @@ export class BasementSDK {
       includeReverseProfile,
       includeTokens,
       tokensLimit,
-      ...parseTokenIncludeOptions(include.tokens),
+      ...tokensIncludeOptions,
     });
 
     return data.address;
@@ -135,18 +137,13 @@ export class BasementSDK {
   /**
    * Query transactions that satisfy the given filter(s)
    */
-  public async transactions({
-    filter,
-    after,
-    limit,
-    reversed,
-    include,
-  }: TransactionsQueryOptions) {
+  public async transactions(params?: TransactionsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const { transactions } = await this.sdk.transactions({
       limit,
       reversed,
-      filter,
+      filter: filter as any,
       after,
       includeTotalCount,
       ...parseTransactionIncludeOptions(include),
@@ -157,13 +154,8 @@ export class BasementSDK {
   /**
    * Query transaction logs that satisfy the given filter(s)
    */
-  public async transactionLogs({
-    after,
-    filter,
-    include,
-    limit,
-    reversed,
-  }: TransactionLogsQueryOptions) {
+  public async transactionLogs(params?: TransactionLogsQueryOptions) {
+    const { after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const includeContractReverseProfile = !!include?.address;
     const includeTransaction = !!include.transaction;
@@ -173,7 +165,7 @@ export class BasementSDK {
     }
     const { transactionLogs } = await this.sdk.transactionLogs({
       after,
-      filter,
+      filter: filter as any,
       limit,
       reversed,
       includeTotalCount,
@@ -207,24 +199,31 @@ export class BasementSDK {
     const includeTransferContract = !!include?.contract;
     const includeTotalCount = include?.totalCount;
     const includeToken = !!include?.token;
-    const includeTokenMedia = isPropertyIncluded(include?.token, "media");
     const includeTransferContractReverseProfile = isPropertyIncluded(
       include?.contract,
       "reverseProfile"
     );
 
+    let parsedTokenOpts = {};
+
+    if (typeof include?.token !== "boolean" && includeToken) {
+      parsedTokenOpts = parseTokenIncludeOptions(include.token);
+    }
+
     const includeSale = !!include?.sale;
     const {
-      includeMaker,
-      includeMakerReverseProfile,
-      includeTaker,
-      includeTakerReverseProfile,
-    } = parseSaleIncludeOptions(include.sale);
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
+    } = parseSaleIncludeOptions(include.sale, "erc721TransferSale");
+
+    const includeTokenSales = isPropertyIncluded(include.token, "sales");
 
     const includeTransaction = !!include?.transaction;
-    let parsedTransactionsProps = {};
+    let parsedTransactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
-      parsedTransactionsProps = parseTransactionIncludeOptions(
+      parsedTransactionOpts = parseTransactionIncludeOptions(
         include?.transaction
       );
     }
@@ -241,17 +240,19 @@ export class BasementSDK {
     );
 
     const { erc721Transfers } = await this.sdk.erc721Transfers({
+      ...parsedTransactionOpts,
+      ...parsedTokenOpts,
       after,
-      filter,
+      filter: filter as any,
       limit,
-      includeMaker,
-      includeTaker,
-      includeMakerReverseProfile,
-      includeTakerReverseProfile,
       includeSale,
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
       includeTotalCount,
       includeToken,
-      includeTokenMedia,
+      includeTokenSales,
       includeTransaction,
       includeTransferRecipient,
       includeTransferSender,
@@ -259,7 +260,6 @@ export class BasementSDK {
       includeTransferContractReverseProfile,
       includeTransferRecipientReverseProfile,
       includeTransferSenderReverseProfile,
-      ...parsedTransactionsProps,
     });
 
     return erc721Transfers;

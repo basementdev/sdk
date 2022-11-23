@@ -514,31 +514,58 @@ export const NonFungibleTokenMintInfoFragmentDoc = gql`
   }
   ${TransactionInfoFragmentDoc}
 `;
-export const NonFungibleTokenSaleInfoFragmentDoc = gql`
-  fragment NonFungibleTokenSaleInfo on NonFungibleTokenSale {
+export const NonFungibleTokenSaleInfoBaseFragmentDoc = gql`
+  fragment NonFungibleTokenSaleInfoBase on NonFungibleTokenSale {
     currencyContract {
       address
     }
     eventIndex
     logIndex
-    maker @include(if: $includeMaker) {
-      address
-      reverseProfile @include(if: $includeMakerReverseProfile) {
-        ...GlobalKeys
-      }
-    }
     marketplace
     marketplaceContract {
       address
     }
     price
-    taker @include(if: $includeTaker) {
+  }
+`;
+export const NonFungibleTokenSalesInfoFragmentDoc = gql`
+  fragment NonFungibleTokenSalesInfo on NonFungibleTokenSale {
+    ...NonFungibleTokenSaleInfoBase
+    maker @include(if: $includeTokenSalesMaker) {
       address
-      reverseProfile @include(if: $includeTakerReverseProfile) {
+      reverseProfile @include(if: $includeTokenSalesMakerReverseProfile) {
+        ...GlobalKeys
+      }
+    }
+    taker @include(if: $includeTokenSalesTaker) {
+      address
+      reverseProfile @include(if: $includeTokenSalesTakerReverseProfile) {
         ...GlobalKeys
       }
     }
   }
+  ${NonFungibleTokenSaleInfoBaseFragmentDoc}
+  ${GlobalKeysFragmentDoc}
+`;
+export const NonFungibleErc721TransferSaleInfoFragmentDoc = gql`
+  fragment NonFungibleErc721TransferSaleInfo on NonFungibleTokenSale {
+    ...NonFungibleTokenSaleInfoBase
+    maker @include(if: $includeErc721TransferSaleMaker) {
+      address
+      reverseProfile
+        @include(if: $includeErc721TransferSaleMakerReverseProfile) {
+        ...GlobalKeys
+      }
+    }
+    taker @include(if: $includeErc721TransferSaleTaker) {
+      address
+      reverseProfile
+        @include(if: $includeErc721TransferSaleTakerReverseProfile) {
+        ...GlobalKeys
+      }
+    }
+  }
+  ${NonFungibleTokenSaleInfoBaseFragmentDoc}
   ${GlobalKeysFragmentDoc}
 `;
 export const NonFungibleTokenOwnerInfoFragmentDoc = gql`
@@ -604,14 +631,14 @@ export const AddressDocument = gql`
     $includeReverseProfile: Boolean = false
     $includeTokens: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMint: Boolean = false
+    $includeTokenMint: Boolean = false
     $includeTokenMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
-    $includeSales: Boolean = false
-    $includeMaker: Boolean = false
-    $includeTaker: Boolean = false
-    $includeMakerReverseProfile: Boolean = false
-    $includeTakerReverseProfile: Boolean = false
+    $includeTokenSales: Boolean = false
+    $includeTokenSalesMaker: Boolean = false
+    $includeTokenSalesTaker: Boolean = false
+    $includeTokenSalesMakerReverseProfile: Boolean = false
+    $includeTokenSalesTakerReverseProfile: Boolean = false
     $includeTransactionRecipient: Boolean = false
     $includeTransactionSender: Boolean = false
   ) {
@@ -626,10 +653,10 @@ export const AddressDocument = gql`
       tokens(limit: $tokensLimit) @include(if: $includeTokens) {
         ...NonFungibleTokenInfo
         ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-        sales @include(if: $includeSales) {
-          ...NonFungibleTokenSaleInfo
+        sales @include(if: $includeTokenSales) {
+          ...NonFungibleTokenSalesInfo
         }
-        ...NonFungibleTokenMintInfo @include(if: $includeMint)
+        ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
         tokenUri @include(if: $includeTokenUri)
       }
     }
@@ -637,7 +664,7 @@ export const AddressDocument = gql`
   ${GlobalKeysFragmentDoc}
   ${NonFungibleTokenInfoFragmentDoc}
   ${NonFungibleTokenMediaInfoFragmentDoc}
-  ${NonFungibleTokenSaleInfoFragmentDoc}
+  ${NonFungibleTokenSalesInfoFragmentDoc}
   ${NonFungibleTokenMintInfoFragmentDoc}
 `;
 export const TokenDocument = gql`
@@ -648,14 +675,14 @@ export const TokenDocument = gql`
     $includeOwnerProfile: Boolean = false
     $includeOwnerReverseProfile: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMint: Boolean = false
+    $includeTokenMint: Boolean = false
     $includeTokenMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
-    $includeSales: Boolean = false
-    $includeMaker: Boolean = false
-    $includeTaker: Boolean = false
-    $includeMakerReverseProfile: Boolean = false
-    $includeTakerReverseProfile: Boolean = false
+    $includeTokenSales: Boolean = false
+    $includeTokenSalesMaker: Boolean = false
+    $includeTokenSalesTaker: Boolean = false
+    $includeTokenSalesMakerReverseProfile: Boolean = false
+    $includeTokenSalesTakerReverseProfile: Boolean = false
     $includeTransactionRecipient: Boolean = false
     $includeTransactionSender: Boolean = false
   ) {
@@ -663,17 +690,17 @@ export const TokenDocument = gql`
       ...NonFungibleTokenInfo
       ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
       ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-      sales @include(if: $includeSales) {
-        ...NonFungibleTokenSaleInfo
+      sales @include(if: $includeTokenSales) {
+        ...NonFungibleTokenSalesInfo
       }
-      ...NonFungibleTokenMintInfo @include(if: $includeMint)
+      ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
       tokenUri @include(if: $includeTokenUri)
     }
   }
   ${NonFungibleTokenInfoFragmentDoc}
   ${NonFungibleTokenOwnerInfoFragmentDoc}
   ${NonFungibleTokenMediaInfoFragmentDoc}
-  ${NonFungibleTokenSaleInfoFragmentDoc}
+  ${NonFungibleTokenSalesInfoFragmentDoc}
   ${NonFungibleTokenMintInfoFragmentDoc}
 `;
 export const TokensDocument = gql`
@@ -686,16 +713,16 @@ export const TokensDocument = gql`
     $includeOwnerProfile: Boolean = false
     $includeOwnerReverseProfile: Boolean = false
     $includeTokenUri: Boolean = false
-    $includeMint: Boolean = false
+    $includeTokenMint: Boolean = false
     $includeTokenMedia: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeTransactionSender: Boolean = false
     $includeTransactionRecipient: Boolean = false
-    $includeSales: Boolean = false
-    $includeMaker: Boolean = false
-    $includeTaker: Boolean = false
-    $includeMakerReverseProfile: Boolean = false
-    $includeTakerReverseProfile: Boolean = false
+    $includeTokenSales: Boolean = false
+    $includeTokenSalesMaker: Boolean = false
+    $includeTokenSalesTaker: Boolean = false
+    $includeTokenSalesMakerReverseProfile: Boolean = false
+    $includeTokenSalesTakerReverseProfile: Boolean = false
   ) {
     tokens(filter: $filter, limit: $limit, after: $after) {
       cursors {
@@ -706,19 +733,19 @@ export const TokensDocument = gql`
         ...NonFungibleTokenInfo
         ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
         ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-        sales @include(if: $includeSales) {
-          ...NonFungibleTokenSaleInfo
-        }
-        ...NonFungibleTokenMintInfo @include(if: $includeMint)
+        ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
         tokenUri @include(if: $includeTokenUri)
+        sales @include(if: $includeTokenSales) {
+          ...NonFungibleTokenSalesInfo
+        }
       }
     }
   }
   ${NonFungibleTokenInfoFragmentDoc}
   ${NonFungibleTokenOwnerInfoFragmentDoc}
   ${NonFungibleTokenMediaInfoFragmentDoc}
-  ${NonFungibleTokenSaleInfoFragmentDoc}
   ${NonFungibleTokenMintInfoFragmentDoc}
+  ${NonFungibleTokenSalesInfoFragmentDoc}
 `;
 export const TransactionDocument = gql`
   query transaction(
@@ -812,18 +839,25 @@ export const Erc721TransfersDocument = gql`
     $after: String
     $limit: Int = 50
     $includeTotalCount: Boolean = false
-    $includeMaker: Boolean = false
-    $includeTaker: Boolean = false
-    $includeMakerReverseProfile: Boolean = false
-    $includeTakerReverseProfile: Boolean = false
+    $includeTokenSalesMaker: Boolean = false
+    $includeTokenSalesTaker: Boolean = false
+    $includeTokenSalesMakerReverseProfile: Boolean = false
+    $includeTokenSalesTakerReverseProfile: Boolean = false
     $includeTransactionLogs: Boolean = false
     $includeTransactionRecipient: Boolean = false
     $includeTransactionSender: Boolean = false
     $includeToken: Boolean = false
     $includeTokenMedia: Boolean = false
+    $includeTokenMint: Boolean = false
+    $includeTokenUri: Boolean = false
+    $includeTokenSales: Boolean = false
     $includeTransferContract: Boolean = false
     $includeTransferContractReverseProfile: Boolean = false
     $includeSale: Boolean = false
+    $includeErc721TransferSaleTaker: Boolean = false
+    $includeErc721TransferSaleMaker: Boolean = false
+    $includeErc721TransferSaleMakerReverseProfile: Boolean = false
+    $includeErc721TransferSaleTakerReverseProfile: Boolean = false
     $includeTransaction: Boolean = false
     $includeTransferSender: Boolean = false
     $includeTransferSenderReverseProfile: Boolean = false
@@ -844,7 +878,7 @@ export const Erc721TransfersDocument = gql`
           }
         }
         sale @include(if: $includeSale) {
-          ...NonFungibleTokenSaleInfo
+          ...NonFungibleErc721TransferSaleInfo
         }
         transaction @include(if: $includeTransaction) {
           ...TransactionInfo
@@ -866,15 +900,22 @@ export const Erc721TransfersDocument = gql`
         token @include(if: $includeToken) {
           ...NonFungibleTokenInfo
           ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+          ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+          tokenUri @include(if: $includeTokenUri)
+          sales @include(if: $includeTokenSales) {
+            ...NonFungibleTokenSalesInfo
+          }
         }
       }
     }
   }
   ${GlobalKeysFragmentDoc}
-  ${NonFungibleTokenSaleInfoFragmentDoc}
+  ${NonFungibleErc721TransferSaleInfoFragmentDoc}
   ${TransactionInfoFragmentDoc}
   ${NonFungibleTokenInfoFragmentDoc}
   ${NonFungibleTokenMediaInfoFragmentDoc}
+  ${NonFungibleTokenMintInfoFragmentDoc}
+  ${NonFungibleTokenSalesInfoFragmentDoc}
 `;
 
 export type SdkFunctionWrapper = <T>(
@@ -1028,14 +1069,14 @@ export type AddressQueryVariables = Exact<{
   includeReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokens?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenMint?: InputMaybe<Scalars["Boolean"]>;
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
-  includeSales?: InputMaybe<Scalars["Boolean"]>;
-  includeMaker?: InputMaybe<Scalars["Boolean"]>;
-  includeTaker?: InputMaybe<Scalars["Boolean"]>;
-  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSales?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
 }>;
@@ -1061,16 +1102,16 @@ export type AddressQuery = {
         logIndex: number;
         marketplace: Marketplace;
         price: any;
-        currencyContract: { address: any } | null;
         maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
-        marketplaceContract: { address: any };
         taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
+        currencyContract: { address: any } | null;
+        marketplaceContract: { address: any };
       }> | null;
       animation: {
         blurhash: string | null;
@@ -1138,14 +1179,14 @@ export type TokenQueryVariables = Exact<{
   includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenMint?: InputMaybe<Scalars["Boolean"]>;
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
-  includeSales?: InputMaybe<Scalars["Boolean"]>;
-  includeMaker?: InputMaybe<Scalars["Boolean"]>;
-  includeTaker?: InputMaybe<Scalars["Boolean"]>;
-  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSales?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
 }>;
@@ -1167,16 +1208,16 @@ export type TokenQuery = {
       logIndex: number;
       marketplace: Marketplace;
       price: any;
-      currencyContract: { address: any } | null;
       maker?: {
         address: any;
         reverseProfile?: { name: string; avatar: string | null } | null;
       };
-      marketplaceContract: { address: any };
       taker?: {
         address: any;
         reverseProfile?: { name: string; avatar: string | null } | null;
       };
+      currencyContract: { address: any } | null;
+      marketplaceContract: { address: any };
     }> | null;
     owner: {
       address: any;
@@ -1248,16 +1289,16 @@ export type TokensQueryVariables = Exact<{
   includeOwnerProfile?: InputMaybe<Scalars["Boolean"]>;
   includeOwnerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
-  includeMint?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenMint?: InputMaybe<Scalars["Boolean"]>;
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
-  includeSales?: InputMaybe<Scalars["Boolean"]>;
-  includeMaker?: InputMaybe<Scalars["Boolean"]>;
-  includeTaker?: InputMaybe<Scalars["Boolean"]>;
-  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSales?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type TokensQuery = {
@@ -1280,16 +1321,16 @@ export type TokensQuery = {
         logIndex: number;
         marketplace: Marketplace;
         price: any;
-        currencyContract: { address: any } | null;
         maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
-        marketplaceContract: { address: any };
         taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
+        currencyContract: { address: any } | null;
+        marketplaceContract: { address: any };
       }> | null;
       owner: {
         address: any;
@@ -1515,18 +1556,25 @@ export type Erc721TransfersQueryVariables = Exact<{
   after: InputMaybe<Scalars["String"]>;
   limit?: InputMaybe<Scalars["Int"]>;
   includeTotalCount?: InputMaybe<Scalars["Boolean"]>;
-  includeMaker?: InputMaybe<Scalars["Boolean"]>;
-  includeTaker?: InputMaybe<Scalars["Boolean"]>;
-  includeMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
-  includeTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTaker?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSalesTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionLogs?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionRecipient?: InputMaybe<Scalars["Boolean"]>;
   includeTransactionSender?: InputMaybe<Scalars["Boolean"]>;
   includeToken?: InputMaybe<Scalars["Boolean"]>;
   includeTokenMedia?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenMint?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenUri?: InputMaybe<Scalars["Boolean"]>;
+  includeTokenSales?: InputMaybe<Scalars["Boolean"]>;
   includeTransferContract?: InputMaybe<Scalars["Boolean"]>;
   includeTransferContractReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeSale?: InputMaybe<Scalars["Boolean"]>;
+  includeErc721TransferSaleTaker?: InputMaybe<Scalars["Boolean"]>;
+  includeErc721TransferSaleMaker?: InputMaybe<Scalars["Boolean"]>;
+  includeErc721TransferSaleMakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
+  includeErc721TransferSaleTakerReverseProfile?: InputMaybe<Scalars["Boolean"]>;
   includeTransaction?: InputMaybe<Scalars["Boolean"]>;
   includeTransferSender?: InputMaybe<Scalars["Boolean"]>;
   includeTransferSenderReverseProfile?: InputMaybe<Scalars["Boolean"]>;
@@ -1551,16 +1599,16 @@ export type Erc721TransfersQuery = {
         logIndex: number;
         marketplace: Marketplace;
         price: any;
-        currencyContract: { address: any } | null;
         maker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
-        marketplaceContract: { address: any };
         taker?: {
           address: any;
           reverseProfile?: { name: string; avatar: string | null } | null;
         };
+        currencyContract: { address: any } | null;
+        marketplaceContract: { address: any };
       } | null;
       transaction?: {
         blockNumber: number;
@@ -1604,6 +1652,7 @@ export type Erc721TransfersQuery = {
         reverseProfile?: { name: string; avatar: string | null } | null;
       } | null;
       token?: {
+        tokenUri?: any | null;
         contract: string;
         description: string | null;
         name: string | null;
@@ -1612,6 +1661,23 @@ export type Erc721TransfersQuery = {
         imageStorageType: TokenStorageType | null;
         backgroundColor: string | null;
         youtubeUrl: string | null;
+        mintPrice: any;
+        sales?: Array<{
+          eventIndex: number;
+          logIndex: number;
+          marketplace: Marketplace;
+          price: any;
+          maker?: {
+            address: any;
+            reverseProfile?: { name: string; avatar: string | null } | null;
+          };
+          taker?: {
+            address: any;
+            reverseProfile?: { name: string; avatar: string | null } | null;
+          };
+          currencyContract: { address: any } | null;
+          marketplaceContract: { address: any };
+        }> | null;
         animation: {
           blurhash: string | null;
           checksum: string;
@@ -1633,6 +1699,39 @@ export type Erc721TransfersQuery = {
           thumbnailUrl: string | null;
           largeUrl: string | null;
           mimeType: string | null;
+        } | null;
+        mintTransaction: {
+          blockNumber: number;
+          blockTimestamp: any;
+          effectiveGasPrice: any;
+          gas: number;
+          gasPaid: any;
+          gasUsed: number;
+          gasPrice: any;
+          hash: string;
+          id: string;
+          index: number;
+          input: string | null;
+          value: any;
+          methodId: string | null;
+          status: boolean;
+          events: Array<
+            { transactionHash: string } | { transactionHash: string }
+          >;
+          from?: {
+            address: any;
+            reverseProfile: { name: string; avatar: string | null } | null;
+          };
+          to?: {
+            address: any;
+            reverseProfile: { name: string; avatar: string | null } | null;
+          } | null;
+          logs?: Array<{
+            data: string;
+            logIndex: number;
+            removed: boolean;
+            topics: Array<string>;
+          }>;
         } | null;
       };
     }>;
@@ -1706,21 +1805,47 @@ export type TransactionInfoFragment = {
   }>;
 };
 
-export type NonFungibleTokenSaleInfoFragment = {
+export type NonFungibleTokenSaleInfoBaseFragment = {
   eventIndex: number;
   logIndex: number;
   marketplace: Marketplace;
   price: any;
   currencyContract: { address: any } | null;
+  marketplaceContract: { address: any };
+};
+
+export type NonFungibleTokenSalesInfoFragment = {
+  eventIndex: number;
+  logIndex: number;
+  marketplace: Marketplace;
+  price: any;
   maker?: {
     address: any;
     reverseProfile?: { name: string; avatar: string | null } | null;
   };
-  marketplaceContract: { address: any };
   taker?: {
     address: any;
     reverseProfile?: { name: string; avatar: string | null } | null;
   };
+  currencyContract: { address: any } | null;
+  marketplaceContract: { address: any };
+};
+
+export type NonFungibleErc721TransferSaleInfoFragment = {
+  eventIndex: number;
+  logIndex: number;
+  marketplace: Marketplace;
+  price: any;
+  maker?: {
+    address: any;
+    reverseProfile?: { name: string; avatar: string | null } | null;
+  };
+  taker?: {
+    address: any;
+    reverseProfile?: { name: string; avatar: string | null } | null;
+  };
+  currencyContract: { address: any } | null;
+  marketplaceContract: { address: any };
 };
 
 export type NonFungibleTokenOwnerInfoFragment = {
