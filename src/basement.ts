@@ -51,7 +51,7 @@ export class BasementSDK {
       "X-Basement-SDK": "true",
     };
     if (this.apiKey) {
-      headers.authorization = `bearer ${this.apiKey}`;
+      headers["x-basement-api-key"] = this.apiKey;
     }
 
     const result = await action(headers);
