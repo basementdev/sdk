@@ -16,7 +16,7 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
 
 export type PluralQueryOptions<K, T> = {
   /** Filter option(s) */
-  filter?: RequireAtLeastOne<K>;
+  filter?: K;
   /** Cursor used for pagination. To go to the next page, provide the value returned from the cursor (if available) */
   after?: string;
   limit?: number;
@@ -84,7 +84,7 @@ export type TokenFilterOptions = {
 
 export type TokensIncludeOption = {
   /** Whether to include the tokens that the address holds - defaults to `false` */
-  tokens?: TokenFilterOptions | boolean;
+  tokens?: Omit<TokenFilterOptions, "owner"> | boolean;
 };
 
 export type TokensQueryFilterOptions = {
@@ -133,7 +133,7 @@ export type TransactionLogsQueryIncludeOptions = {
 };
 
 export type TransactionLogsQueryOptions = PluralQueryOptions<
-  TransactionLogsQueryVariables["filter"],
+  Partial<TransactionLogsQueryVariables["filter"]>,
   TransactionLogsQueryIncludeOptions
 >;
 
@@ -145,7 +145,7 @@ export type Erc721TransfersQueryIncludeOptions = {
   /** Whether to include the sale log found to be associated with this transfer */
   sale?: RequireAtLeastOne<SalesFilterOptions> | boolean;
   /** Whether to include the metadata for the token which was transferred */
-  token?: Pick<TokenQueryIncludeOptions, "media"> | boolean;
+  token?: Omit<TokenQueryIncludeOptions, "owner"> | boolean;
   /** Whether to include the address sending this token, when this contains the "null address" this token was minted during this transfer  */
   from?: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the address receiving this token, when this contains the "null address" this token was burned during this transfer */
@@ -154,7 +154,7 @@ export type Erc721TransfersQueryIncludeOptions = {
 
 export type Erc721TransfersQueryOptions = Omit<
   PluralQueryOptions<
-    Erc721TransfersQueryVariables["filter"],
+    Partial<Erc721TransfersQueryVariables["filter"]>,
     Erc721TransfersQueryIncludeOptions
   >,
   "reversed"

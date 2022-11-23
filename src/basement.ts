@@ -69,7 +69,6 @@ export class BasementSDK {
     const data = await this.sdk.token({
       contract,
       tokenId,
-
       ...parseTokenIncludeOptions(include),
     });
     return data.token;
@@ -200,24 +199,31 @@ export class BasementSDK {
     const includeTransferContract = !!include?.contract;
     const includeTotalCount = include?.totalCount;
     const includeToken = !!include?.token;
-    const includeTokenMedia = isPropertyIncluded(include?.token, "media");
     const includeTransferContractReverseProfile = isPropertyIncluded(
       include?.contract,
       "reverseProfile"
     );
 
+    let parsedTokenOpts = {};
+
+    if (typeof include?.token !== "boolean" && includeToken) {
+      parsedTokenOpts = parseTokenIncludeOptions(include.token);
+    }
+
     const includeSale = !!include?.sale;
     const {
-      includeMaker,
-      includeMakerReverseProfile,
-      includeTaker,
-      includeTakerReverseProfile,
-    } = parseSaleIncludeOptions(include.sale);
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
+    } = parseSaleIncludeOptions(include.sale, "erc721TransferSale");
+
+    const includeTokenSales = isPropertyIncluded(include.token, "sales");
 
     const includeTransaction = !!include?.transaction;
-    let parsedTransactionsProps = {};
+    let parsedTransactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
-      parsedTransactionsProps = parseTransactionIncludeOptions(
+      parsedTransactionOpts = parseTransactionIncludeOptions(
         include?.transaction
       );
     }
@@ -234,17 +240,19 @@ export class BasementSDK {
     );
 
     const { erc721Transfers } = await this.sdk.erc721Transfers({
+      ...parsedTransactionOpts,
+      ...parsedTokenOpts,
       after,
       filter: filter as any,
       limit,
-      includeMaker,
-      includeTaker,
-      includeMakerReverseProfile,
-      includeTakerReverseProfile,
       includeSale,
+      includeErc721TransferSaleMaker,
+      includeErc721TransferSaleTaker,
+      includeErc721TransferSaleMakerReverseProfile,
+      includeErc721TransferSaleTakerReverseProfile,
       includeTotalCount,
       includeToken,
-      includeTokenMedia,
+      includeTokenSales,
       includeTransaction,
       includeTransferRecipient,
       includeTransferSender,
@@ -252,7 +260,6 @@ export class BasementSDK {
       includeTransferContractReverseProfile,
       includeTransferRecipientReverseProfile,
       includeTransferSenderReverseProfile,
-      ...parsedTransactionsProps,
     });
 
     return erc721Transfers;

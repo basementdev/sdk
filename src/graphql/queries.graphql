@@ -5,14 +5,14 @@ query address(
   $includeReverseProfile: Boolean = false
   $includeTokens: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMint: Boolean = false
+  $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
-  $includeSales: Boolean = false
-  $includeMaker: Boolean = false
-  $includeTaker: Boolean = false
-  $includeMakerReverseProfile: Boolean = false
-  $includeTakerReverseProfile: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
 ) {
@@ -27,10 +27,10 @@ query address(
     tokens(limit: $tokensLimit) @include(if: $includeTokens) {
       ...NonFungibleTokenInfo
       ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-      sales @include(if: $includeSales) {
-        ...NonFungibleTokenSaleInfo
+      sales @include(if: $includeTokenSales) {
+        ...NonFungibleTokenSalesInfo
       }
-      ...NonFungibleTokenMintInfo @include(if: $includeMint)
+      ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
       tokenUri @include(if: $includeTokenUri)
     }
   }
@@ -43,14 +43,14 @@ query token(
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMint: Boolean = false
+  $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
-  $includeSales: Boolean = false
-  $includeMaker: Boolean = false
-  $includeTaker: Boolean = false
-  $includeMakerReverseProfile: Boolean = false
-  $includeTakerReverseProfile: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
 ) {
@@ -58,10 +58,10 @@ query token(
     ...NonFungibleTokenInfo
     ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
     ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-    sales @include(if: $includeSales) {
-      ...NonFungibleTokenSaleInfo
+    sales @include(if: $includeTokenSales) {
+      ...NonFungibleTokenSalesInfo
     }
-    ...NonFungibleTokenMintInfo @include(if: $includeMint)
+    ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
     tokenUri @include(if: $includeTokenUri)
   }
 }
@@ -75,16 +75,16 @@ query tokens(
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
-  $includeMint: Boolean = false
+  $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionRecipient: Boolean = false
-  $includeSales: Boolean = false
-  $includeMaker: Boolean = false
-  $includeTaker: Boolean = false
-  $includeMakerReverseProfile: Boolean = false
-  $includeTakerReverseProfile: Boolean = false
+  $includeTokenSales: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
 ) {
   tokens(filter: $filter, limit: $limit, after: $after) {
     cursors {
@@ -95,11 +95,11 @@ query tokens(
       ...NonFungibleTokenInfo
       ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
       ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
-      sales @include(if: $includeSales) {
-        ...NonFungibleTokenSaleInfo
-      }
-      ...NonFungibleTokenMintInfo @include(if: $includeMint)
+      ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
       tokenUri @include(if: $includeTokenUri)
+      sales @include(if: $includeTokenSales) {
+        ...NonFungibleTokenSalesInfo
+      }
     }
   }
 }
@@ -188,18 +188,25 @@ query erc721Transfers(
   $after: String
   $limit: Int = 50
   $includeTotalCount: Boolean = false
-  $includeMaker: Boolean = false
-  $includeTaker: Boolean = false
-  $includeMakerReverseProfile: Boolean = false
-  $includeTakerReverseProfile: Boolean = false
+  $includeTokenSalesMaker: Boolean = false
+  $includeTokenSalesTaker: Boolean = false
+  $includeTokenSalesMakerReverseProfile: Boolean = false
+  $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeToken: Boolean = false
   $includeTokenMedia: Boolean = false
+  $includeTokenMint: Boolean = false
+  $includeTokenUri: Boolean = false
+  $includeTokenSales: Boolean = false
   $includeTransferContract: Boolean = false
   $includeTransferContractReverseProfile: Boolean = false
   $includeSale: Boolean = false
+  $includeErc721TransferSaleTaker: Boolean = false
+  $includeErc721TransferSaleMaker: Boolean = false
+  $includeErc721TransferSaleMakerReverseProfile: Boolean = false
+  $includeErc721TransferSaleTakerReverseProfile: Boolean = false
   $includeTransaction: Boolean = false
   $includeTransferSender: Boolean = false
   $includeTransferSenderReverseProfile: Boolean = false
@@ -220,7 +227,7 @@ query erc721Transfers(
         }
       }
       sale @include(if: $includeSale) {
-        ...NonFungibleTokenSaleInfo
+        ...NonFungibleErc721TransferSaleInfo
       }
       transaction @include(if: $includeTransaction) {
         ...TransactionInfo
@@ -242,6 +249,11 @@ query erc721Transfers(
       token @include(if: $includeToken) {
         ...NonFungibleTokenInfo
         ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
+        ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
+        tokenUri @include(if: $includeTokenUri)
+        sales @include(if: $includeTokenSales) {
+          ...NonFungibleTokenSalesInfo
+        }
       }
     }
   }
@@ -292,26 +304,49 @@ fragment TransactionInfo on Transaction {
   }
 }
 
-fragment NonFungibleTokenSaleInfo on NonFungibleTokenSale {
+fragment NonFungibleTokenSaleInfoBase on NonFungibleTokenSale {
   currencyContract {
     address
   }
   eventIndex
   logIndex
-  maker @include(if: $includeMaker) {
-    address
-    reverseProfile @include(if: $includeMakerReverseProfile) {
-      ...GlobalKeys
-    }
-  }
+
   marketplace
   marketplaceContract {
     address
   }
   price
-  taker @include(if: $includeTaker) {
+}
+
+fragment NonFungibleTokenSalesInfo on NonFungibleTokenSale {
+  ...NonFungibleTokenSaleInfoBase
+  maker @include(if: $includeTokenSalesMaker) {
     address
-    reverseProfile @include(if: $includeTakerReverseProfile) {
+    reverseProfile @include(if: $includeTokenSalesMakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+
+  taker @include(if: $includeTokenSalesTaker) {
+    address
+    reverseProfile @include(if: $includeTokenSalesTakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+}
+
+fragment NonFungibleErc721TransferSaleInfo on NonFungibleTokenSale {
+  ...NonFungibleTokenSaleInfoBase
+  maker @include(if: $includeErc721TransferSaleMaker) {
+    address
+    reverseProfile @include(if: $includeErc721TransferSaleMakerReverseProfile) {
+      ...GlobalKeys
+    }
+  }
+
+  taker @include(if: $includeErc721TransferSaleTaker) {
+    address
+    reverseProfile @include(if: $includeErc721TransferSaleTakerReverseProfile) {
       ...GlobalKeys
     }
   }

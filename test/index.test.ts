@@ -181,7 +181,11 @@ describe("Basement SDK", () => {
           maker: { reverseProfile: true },
           taker: { reverseProfile: false },
         },
-        token: { media: true },
+        token: {
+          media: true,
+          mintTransaction: true,
+          sales: true,
+        },
         transaction: { logs: true, from: true, to: true },
       },
     });
@@ -192,5 +196,8 @@ describe("Basement SDK", () => {
     expect(transfer.to?.address).toBeDefined();
     expect(transfer.sale?.maker?.reverseProfile).toBeDefined();
     expect(transfer.sale?.taker?.reverseProfile).toBeUndefined();
+    expect(transfer.token?.sales).toBeDefined()
+    expect(transfer.token?.sales[0]?.maker).toBeUndefined()
+    expect(transfer.token?.sales[0]?.taker).toBeUndefined()
   });
 });
