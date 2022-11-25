@@ -24,7 +24,7 @@ import {
   parseTransactionIncludeOptions,
 } from "./utils/parseIncludeOptions";
 
-export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphiql";
+export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphql";
 
 type SDKOptions = {
   endpoint?: string;
