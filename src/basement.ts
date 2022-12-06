@@ -221,12 +221,10 @@ export class BasementSDK {
     const includeTokenSales = isPropertyIncluded(include.token, "sales");
 
     const includeTransaction = !!include?.transaction;
-    let parsedTransactionOpts = {};
-    if (typeof include?.transaction !== "boolean") {
-      parsedTransactionOpts = parseTransactionIncludeOptions(
-        include?.transaction
-      );
-    }
+
+    const parsedTransactionOpts = parseTransactionIncludeOptions(
+      include?.transaction
+    );
 
     const includeTransferSender = !!include?.from;
     const includeTransferSenderReverseProfile = isPropertyIncluded(

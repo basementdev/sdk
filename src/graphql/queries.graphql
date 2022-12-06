@@ -15,6 +15,7 @@ query address(
   $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
 ) {
   address(address: $address) {
     address
@@ -53,6 +54,7 @@ query token(
   $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
 ) {
   token(contract: $contract, tokenId: $tokenId) {
     ...NonFungibleTokenInfo
@@ -80,6 +82,7 @@ query tokens(
   $includeTransactionLogs: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionRecipient: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTokenSales: Boolean = false
   $includeTokenSalesMaker: Boolean = false
   $includeTokenSalesTaker: Boolean = false
@@ -108,6 +111,7 @@ query transaction(
   $hash: String!
   $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTransactionSender: Boolean = false
 ) {
   transaction(hash: $hash) {
@@ -123,6 +127,7 @@ query transactions(
   $includeTotalCount: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTransactionLogs: Boolean = false
 ) {
   transactions(
@@ -150,6 +155,7 @@ query transactionLogs(
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionLogs: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeContractReverseProfile: Boolean = false
   $includeTransaction: Boolean = false
 ) {
@@ -195,6 +201,7 @@ query erc721Transfers(
   $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeToken: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTokenMint: Boolean = false
@@ -270,7 +277,7 @@ fragment TransactionInfo on Transaction {
   blockNumber
   blockTimestamp
   effectiveGasPrice
-  events {
+  events @include(if: $includeTransactionEvents) {
     transactionHash
   }
   gas

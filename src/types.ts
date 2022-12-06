@@ -62,6 +62,8 @@ export type TransactionQueryIncludeOptions = {
   from: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the address the transaction was sent to. This can be another wallet, a contract, or `null` in the case of a contract creation. */
   to: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the events that happened within the transaction. */
+  events: boolean;
 };
 
 export type TokenQueryIncludeOptions = {

@@ -14,7 +14,7 @@ describe("Basement SDK", () => {
       tokenId: TOKEN_ID,
       include: {
         media: true,
-        mintTransaction: { logs: true, from: true, to: true },
+        mintTransaction: { logs: true, from: true, to: true, events: true },
         sales: {
           maker: true,
           taker: true,
@@ -126,9 +126,10 @@ describe("Basement SDK", () => {
     expect(keys).not.toEqual(expect.arrayContaining(includeKeys));
     data = await sdk.transaction({
       hash: TXN_HASH,
-      include: { logs: true, from: true, to: true },
+      include: { logs: true, from: true, to: true, events: false },
     });
     keys = Object.keys(data);
+    expect(data?.events).toBeUndefined();
     expect(keys).toEqual(expect.arrayContaining(includeKeys));
   });
 
@@ -151,7 +152,7 @@ describe("Basement SDK", () => {
       include: {
         address: true,
         totalCount: true,
-        transaction: { from: true, to: true },
+        transaction: { from: true, to: true, events: false },
       },
     });
     expect(data?.totalCount).toBeDefined();
@@ -186,7 +187,7 @@ describe("Basement SDK", () => {
           mintTransaction: true,
           sales: true,
         },
-        transaction: { logs: true, from: true, to: true },
+        transaction: { logs: true, from: true, to: true, events: false },
       },
     });
     expect(data.totalCount).toBeDefined();
