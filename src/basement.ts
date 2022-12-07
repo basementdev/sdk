@@ -49,6 +49,7 @@ export class BasementSDK {
   ): Promise<T> => {
     const headers: Record<string, string> = {
       "X-Basement-SDK": "true",
+      "X-Basement-SDK-Version": process.env.npm_package_version,
     };
     if (this.apiKey) {
       headers["x-basement-api-key"] = this.apiKey;
