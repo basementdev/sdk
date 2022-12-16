@@ -8,6 +8,22 @@ import isPropertyIncluded from "./isPropertyIncluded";
 
 type QueryType = "tokenSales" | "erc721TransferSale";
 
+export function parseTransactionIncludeOptions(
+  opts?: Partial<TransactionQueryIncludeOptions> | boolean
+) {
+  if (typeof opts === "boolean") return {};
+  const includeTransactionLogs = opts?.logs;
+  const includeTransactionRecipient = !!opts?.to;
+  const includeTransactionSender = !!opts?.from;
+  const includeTransactionEvents = opts?.events;
+  return {
+    includeTransactionEvents,
+    includeTransactionLogs,
+    includeTransactionRecipient,
+    includeTransactionSender,
+  };
+}
+
 export function parseSaleIncludeOptions<T extends QueryType>(
   opts?: Partial<SalesFilterOptions> | boolean,
   queryType?: T
@@ -54,27 +70,22 @@ export function parseTokenIncludeOptions(
 ): Partial<TokenQueryVariables> {
   const includeOwner = !!opts.owner;
   const includeTokenMint = !!opts.mintTransaction;
-  const includeTransactionRecipient = isPropertyIncluded(
-    opts.mintTransaction,
-    "to"
+
+  const mintTranasctionOpts = parseTransactionIncludeOptions(
+    opts.mintTransaction
   );
-  const includeTransactionSender = isPropertyIncluded(
-    opts.mintTransaction,
-    "from"
-  );
-  const includeTokenSales = !!opts.sales;
-  const includeTokenUri = opts.tokenUri;
-  const includeTokenMedia = opts.media;
+
   const {
     includeTokenSalesMaker,
     includeTokenSalesMakerReverseProfile,
     includeTokenSalesTaker,
     includeTokenSalesTakerReverseProfile,
   } = parseSaleIncludeOptions(opts.sales, "tokenSales");
-  const includeTransactionLogs = isPropertyIncluded(
-    opts.mintTransaction,
-    "logs"
-  );
+
+  const includeTokenAttributes = opts.attributes;
+  const includeTokenSales = !!opts.sales;
+  const includeTokenUri = opts.tokenUri;
+  const includeTokenMedia = opts.media;
   const includeOwnerProfile = isPropertyIncluded(opts.owner, "profile");
   const includeOwnerReverseProfile = isPropertyIncluded(
     opts.owner,
@@ -84,6 +95,7 @@ export function parseTokenIncludeOptions(
   return {
     includeOwner,
     includeTokenMint,
+    ...mintTranasctionOpts,
     includeTokenUri,
     includeTokenSales,
     includeTokenMedia,
@@ -91,23 +103,8 @@ export function parseTokenIncludeOptions(
     includeTokenSalesTaker,
     includeTokenSalesMakerReverseProfile,
     includeTokenSalesTakerReverseProfile,
-    includeTransactionLogs,
     includeOwnerProfile,
     includeOwnerReverseProfile,
-    includeTransactionRecipient,
-    includeTransactionSender,
-  };
-}
-
-export function parseTransactionIncludeOptions(
-  opts?: Partial<TransactionQueryIncludeOptions>
-) {
-  const includeTransactionLogs = opts?.logs;
-  const includeTransactionRecipient = !!opts?.to;
-  const includeTransactionSender = !!opts?.from;
-  return {
-    includeTransactionLogs,
-    includeTransactionRecipient,
-    includeTransactionSender,
+    includeTokenAttributes,
   };
 }

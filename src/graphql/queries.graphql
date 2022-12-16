@@ -5,6 +5,7 @@ query address(
   $includeReverseProfile: Boolean = false
   $includeTokens: Boolean = false
   $includeTokenUri: Boolean = false
+  $includeTokenAttributes: Boolean = false
   $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
@@ -15,6 +16,7 @@ query address(
   $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
 ) {
   address(address: $address) {
     address
@@ -26,6 +28,7 @@ query address(
     }
     tokens(limit: $tokensLimit) @include(if: $includeTokens) {
       ...NonFungibleTokenInfo
+      ...NonFungibleTokenAttributes @include(if: $includeTokenAttributes)
       ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
       sales @include(if: $includeTokenSales) {
         ...NonFungibleTokenSalesInfo
@@ -43,6 +46,7 @@ query token(
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
+  $includeTokenAttributes: Boolean = false
   $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
@@ -53,9 +57,11 @@ query token(
   $includeTokenSalesTakerReverseProfile: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
 ) {
   token(contract: $contract, tokenId: $tokenId) {
     ...NonFungibleTokenInfo
+    ...NonFungibleTokenAttributes @include(if: $includeTokenAttributes)
     ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
     ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
     sales @include(if: $includeTokenSales) {
@@ -69,17 +75,19 @@ query token(
 query tokens(
   $filter: TokensFilter
   $limit: Int = 50
-  $after: String
+  $after: Cursor
   $includeTotalCount: Boolean = false
   $includeOwner: Boolean = false
   $includeOwnerProfile: Boolean = false
   $includeOwnerReverseProfile: Boolean = false
   $includeTokenUri: Boolean = false
+  $includeTokenAttributes: Boolean = false
   $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTransactionLogs: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionRecipient: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTokenSales: Boolean = false
   $includeTokenSalesMaker: Boolean = false
   $includeTokenSalesTaker: Boolean = false
@@ -93,6 +101,7 @@ query tokens(
     totalCount @include(if: $includeTotalCount)
     tokens {
       ...NonFungibleTokenInfo
+      ...NonFungibleTokenAttributes @include(if: $includeTokenAttributes)
       ...NonFungibleTokenOwnerInfo @include(if: $includeOwner)
       ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
       ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
@@ -108,6 +117,7 @@ query transaction(
   $hash: String!
   $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTransactionSender: Boolean = false
 ) {
   transaction(hash: $hash) {
@@ -117,12 +127,13 @@ query transaction(
 
 query transactions(
   $filter: TransactionFilter
-  $after: String
+  $after: Cursor
   $limit: Int = 50
   $reversed: Boolean = false
   $includeTotalCount: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeTransactionLogs: Boolean = false
 ) {
   transactions(
@@ -142,7 +153,7 @@ query transactions(
 }
 
 query transactionLogs(
-  $after: String
+  $after: Cursor
   $includeTotalCount: Boolean = false
   $filter: TransactionLogFilter
   $limit: Int = 50
@@ -150,6 +161,7 @@ query transactionLogs(
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionLogs: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeContractReverseProfile: Boolean = false
   $includeTransaction: Boolean = false
 ) {
@@ -185,7 +197,7 @@ query transactionLogs(
 
 query erc721Transfers(
   $filter: TransfersFilter
-  $after: String
+  $after: Cursor
   $limit: Int = 50
   $includeTotalCount: Boolean = false
   $includeTokenSalesMaker: Boolean = false
@@ -195,10 +207,12 @@ query erc721Transfers(
   $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
   $includeToken: Boolean = false
   $includeTokenMedia: Boolean = false
   $includeTokenMint: Boolean = false
   $includeTokenUri: Boolean = false
+  $includeTokenAttributes: Boolean = false
   $includeTokenSales: Boolean = false
   $includeTransferContract: Boolean = false
   $includeTransferContractReverseProfile: Boolean = false
@@ -248,6 +262,7 @@ query erc721Transfers(
       logIndex
       token @include(if: $includeToken) {
         ...NonFungibleTokenInfo
+        ...NonFungibleTokenAttributes @include(if: $includeTokenAttributes)
         ...NonFungibleTokenMediaInfo @include(if: $includeTokenMedia)
         ...NonFungibleTokenMintInfo @include(if: $includeTokenMint)
         tokenUri @include(if: $includeTokenUri)
@@ -270,7 +285,7 @@ fragment TransactionInfo on Transaction {
   blockNumber
   blockTimestamp
   effectiveGasPrice
-  events {
+  events @include(if: $includeTransactionEvents) {
     transactionHash
   }
   gas
@@ -382,6 +397,14 @@ fragment NonFungibleTokenInfo on NonFungibleToken {
   name
   tokenId
   externalUrl
+}
+
+fragment NonFungibleTokenAttributes on NonFungibleToken {
+  attributes {
+    displayType
+    traitType
+    value
+  }
 }
 
 fragment MediaInfo on Media {

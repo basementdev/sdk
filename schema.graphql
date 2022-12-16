@@ -1,16 +1,22 @@
 "Represents a schema"
 schema {
-  query: RootQueryType
-  mutation: RootMutationType
+  query: Query
+  mutation: Mutation
 }
 
 type Cursors {
+  "Returns the elements in the list that come after the specified cursor."
   after: String
+
+  "Returns the elements in the list that come before the specified cursor."
   before: String
 }
 
 "Address with EIP55 checksum"
 scalar HexAddress
+
+".eth addresses"
+scalar EnsAddress
 
 "A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721."
 type Erc721Transfer implements TransactionEvent {
@@ -97,6 +103,13 @@ type Erc721Token implements NonFungibleToken {
   sales: [NonFungibleTokenSale!]
   mintPrice: Wei!
   mintTransaction: Transaction
+  attributes: [NonFungibleTokenAttribute!]
+}
+
+type NonFungibleTokenAttribute {
+  traitType: String
+  value: String
+  displayType: String
 }
 
 "Index of the log in a transaction signaling the sale. Such as OrdersMatched or OrderFulfilled."
@@ -136,13 +149,19 @@ type NonFungibleTokenSale implements TransactionEvent {
 
 input TransfersFilter {
   "A list of addresses who received the NFT. Ignored when empty."
-  fromAddresses: [String]
+  fromAddresses: [EnsAddress]
 
   "A list of addresses who received the NFT."
-  toAddresses: [String]
+  toAddresses: [EnsAddress]
 
   "A list of block numbers to include transfers from"
   blockNumbers: [Int!]
+
+  "An upper bound on the block range to include erc721 transfers from. Cannot be used in combination with `blockNumbers`."
+  toBlock: Int
+
+  "A lower bound on the block range to include erc721 transfers from. Cannot be used in combination with `blockNumbers`."
+  fromBlock: Int
 
   "A contract to include transfers from."
   contractAddresses: [String]
@@ -175,10 +194,10 @@ type Address {
 
 input TransactionLogTransactionFilter {
   "A list of addresses to whom a transaction which emitted this log was sent. Add `nil` to include contract creation transactions. Ignored when empty."
-  toAddresses: [String]
+  toAddresses: [EnsAddress]
 
   "A list of addresses who initiated the transaction this log was emitted from. Ignored when empty."
-  fromAddresses: [String!]
+  fromAddresses: [EnsAddress!]
 }
 
 input TokensFilter {
@@ -203,14 +222,36 @@ type Erc721TransferPage {
 "The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics"
 scalar LogTopic
 
-type RootQueryType {
+type Query {
   address(address: String!): Address
 
-  erc721Transfers(filter: TransfersFilter, after: String, before: String, limit: Int): Erc721TransferPage!
+  erc721Transfers(
+    filter: TransfersFilter
+
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
+
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
+
+    "The number of items to return in one page"
+    limit: Int
+  ): Erc721TransferPage!
 
   token(contract: String!, tokenId: String!): NonFungibleToken
 
-  tokens(filter: TokensFilter, after: String, before: String, limit: Int): TokensPage!
+  tokens(
+    filter: TokensFilter
+
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
+
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
+
+    "The number of items to return in one page"
+    limit: Int
+  ): TokensPage!
 
   "Query a transaction"
   transaction(hash: String!): Transaction
@@ -218,9 +259,11 @@ type RootQueryType {
   transactionLogs(
     filter: TransactionLogFilter
 
-    after: String
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
 
-    before: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
 
     "The number of items to return in one page"
     limit: Int
@@ -232,9 +275,11 @@ type RootQueryType {
   transactions(
     filter: TransactionFilter
 
-    after: String
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
 
-    before: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
 
     "The number of items to return in one page"
     limit: Int
@@ -265,7 +310,7 @@ scalar DateTime
 
 input TransactionLogFilter {
   "A list of contract addresses from which this log was emitted.  Ignored when empty."
-  addresses: [String!]
+  addresses: [EnsAddress!]
 
   """
   A list of topics to search for.
@@ -287,8 +332,14 @@ input TransactionLogFilter {
   "Whether to include logs which were removed during a block reorg, defaults to false."
   includeRemoved: Boolean
 
-  "A list of block numbers to include transaction logs from"
+  "A list of block numbers to include transaction logs from. Cannot be used in combination with `toBlock` and `fromBlock`."
   blockNumbers: [Int!]
+
+  "An upper bound on the block range to include logs from. Cannot be used in combination with `blockNumbers`."
+  toBlock: Int
+
+  "A lower bound on the block range to include logs from. Cannot be used in combination with `blockNumbers`."
+  fromBlock: Int
 
   "Filter on the transactions in which a log was emitted."
   transaction: TransactionLogTransactionFilter
@@ -327,10 +378,10 @@ type TransactionLog {
 
 input TransactionFilter {
   "A list of addresses who initiated transactions. Ignored when empty."
-  fromAddresses: [String!]
+  fromAddresses: [EnsAddress!]
 
   "A list of addresses to whom a transaction was sent. Add `nil` to include contract creation transactions. Ignored when empty."
-  toAddresses: [String]
+  toAddresses: [EnsAddress]
 
   "A list of block numbers to include transactions from"
   blockNumbers: [Int!]
@@ -338,6 +389,9 @@ input TransactionFilter {
   "A list of methodIds as specified in the first 4 bytes of calldata. Note: this field is not verified to be a valid call. Addresses may send transactions with arbitrary data."
   methodIds: [String!]
 }
+
+"Cursor used in pagination"
+scalar Cursor
 
 """
 The `Json` scalar type represents arbitrary json string data, represented as UTF-8
@@ -433,6 +487,9 @@ interface NonFungibleToken {
 
   "Place of storage for the image file"
   imageStorageType: TokenStorageType
+
+  "Token attributes"
+  attributes: [NonFungibleTokenAttribute!]
 }
 
 "An interface implemented by events within a transaction that were indexed in our graph"
@@ -441,7 +498,7 @@ interface TransactionEvent {
   transactionHash: String!
 }
 
-type RootMutationType {
+type Mutation {
   nonFungibleTokenRefresh(contract: String!, tokenId: String!): String
 }
 

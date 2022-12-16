@@ -48,7 +48,7 @@ export class BasementSDK {
     action: (requestHeaders?: Record<string, string>) => Promise<T>
   ): Promise<T> => {
     const headers: Record<string, string> = {
-      "X-Basement-SDK": "true",
+      "X-Basement-SDK": process.env.npm_package_version,
     };
     if (this.apiKey) {
       headers["x-basement-api-key"] = this.apiKey;
@@ -221,12 +221,10 @@ export class BasementSDK {
     const includeTokenSales = isPropertyIncluded(include.token, "sales");
 
     const includeTransaction = !!include?.transaction;
-    let parsedTransactionOpts = {};
-    if (typeof include?.transaction !== "boolean") {
-      parsedTransactionOpts = parseTransactionIncludeOptions(
-        include?.transaction
-      );
-    }
+
+    const parsedTransactionOpts = parseTransactionIncludeOptions(
+      include?.transaction
+    );
 
     const includeTransferSender = !!include?.from;
     const includeTransferSenderReverseProfile = isPropertyIncluded(
