@@ -77,6 +77,8 @@ export type TokenQueryIncludeOptions = {
   sales?: RequireAtLeastOne<SalesFilterOptions> | boolean;
   /** Whether to include information regarding the token's mint. This includes information like the mint transaction and mint price. */
   mintTransaction?: TransactionQueryIncludeOptions | boolean;
+  /** Whether to include the token attributes */
+  attributes?: boolean;
 };
 
 export type TokenFilterOptions = {

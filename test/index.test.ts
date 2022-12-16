@@ -24,6 +24,7 @@ describe("Basement SDK", () => {
           profile: true,
           reverseProfile: true,
         },
+        attributes: true,
       },
     });
 
@@ -49,6 +50,7 @@ describe("Basement SDK", () => {
     expect(mintTransactionKeys).toEqual(
       expect.arrayContaining(["from", "to", "logs"])
     );
+    expect(token?.attributes).toBeDefined();
   });
 
   test("address query", async () => {

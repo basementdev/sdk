@@ -82,6 +82,7 @@ export function parseTokenIncludeOptions(
     includeTokenSalesTakerReverseProfile,
   } = parseSaleIncludeOptions(opts.sales, "tokenSales");
 
+  const includeTokenAttributes = opts.attributes;
   const includeTokenSales = !!opts.sales;
   const includeTokenUri = opts.tokenUri;
   const includeTokenMedia = opts.media;
@@ -104,5 +105,6 @@ export function parseTokenIncludeOptions(
     includeTokenSalesTakerReverseProfile,
     includeOwnerProfile,
     includeOwnerReverseProfile,
+    includeTokenAttributes,
   };
 }
