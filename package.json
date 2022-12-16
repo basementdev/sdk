@@ -1,6 +1,6 @@
 {
   "name": "@basementdev/sdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Basement SDK",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
