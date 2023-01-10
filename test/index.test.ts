@@ -167,7 +167,7 @@ describe("Basement SDK", () => {
     );
   });
 
-  test("transfers query", async () => {
+  test("erc721Transfers query", async () => {
     const data = await sdk.erc721Transfers({
       filter: {
         exclude: [
@@ -192,15 +192,37 @@ describe("Basement SDK", () => {
         transaction: { logs: true, from: true, to: true, events: false },
       },
     });
+    const erc721Transfer = data.erc721Transfers[0];
+
     expect(data.totalCount).toBeDefined();
-    const transfer = data.erc721Transfers[0];
-    expect(transfer.contract?.address).toBeDefined();
-    expect(transfer.from?.address).toBeDefined();
-    expect(transfer.to?.address).toBeDefined();
-    expect(transfer.sale?.maker?.reverseProfile).toBeDefined();
-    expect(transfer.sale?.taker?.reverseProfile).toBeUndefined();
-    expect(transfer.token?.sales).toBeDefined();
-    expect(transfer.token?.sales[0]?.maker).toBeUndefined();
-    expect(transfer.token?.sales[0]?.taker).toBeUndefined();
+    expect(erc721Transfer.contract?.address).toBeDefined();
+    expect(erc721Transfer.from?.address).toBeDefined();
+    expect(erc721Transfer.to?.address).toBeDefined();
+    expect(erc721Transfer.sale?.maker?.reverseProfile).toBeDefined();
+    expect(erc721Transfer.sale?.taker?.reverseProfile).toBeUndefined();
+    expect(erc721Transfer.token?.sales).toBeDefined();
+    expect(erc721Transfer.token?.sales[0]?.maker).toBeUndefined();
+    expect(erc721Transfer.token?.sales[0]?.taker).toBeUndefined();
+  });
+
+  test("erc20Transfers query", async () => {
+    const data = await sdk.erc20Transfers({
+      include: {
+        totalCount: true,
+        contract: true,
+        from: { reverseProfile: true },
+        to: { reverseProfile: true },
+        transaction: { logs: true, from: true, to: true, events: false },
+      },
+    });
+
+    const erc20Transfer = data.erc20Transfers[0];
+
+    expect(data.totalCount).toBeDefined();
+    expect(erc20Transfer.contractAddress).toBeDefined();
+    expect(erc20Transfer.from?.address).toBeDefined();
+    expect(erc20Transfer.from?.address).toBeDefined();
+    expect(erc20Transfer.to?.reverseProfile).toBeDefined();
+    expect(erc20Transfer.to?.reverseProfile).toBeDefined();
   });
 });

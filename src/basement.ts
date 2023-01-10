@@ -16,12 +16,14 @@ import {
   TransactionQueryOptions,
   TransactionsQueryOptions,
   Erc721TransfersQueryOptions,
+  Erc20TransfersQueryOptions,
 } from "./types";
 import isPropertyIncluded from "./utils/isPropertyIncluded";
 import {
-  parseSaleIncludeOptions,
-  parseTokenIncludeOptions,
-  parseTransactionIncludeOptions,
+  parseSaleOpts,
+  parseTokenOpts,
+  parseTransactionOpts,
+  parseTransferSenderRecipientOpts,
 } from "./utils/parseIncludeOptions";
 
 export const DEFAULT_ENDPOINT = "https://beta.basement.dev/v2/graphql";
@@ -69,7 +71,7 @@ export class BasementSDK {
     const data = await this.sdk.token({
       contract,
       tokenId,
-      ...parseTokenIncludeOptions(include),
+      ...parseTokenOpts(include),
     });
     return data.token;
   }
@@ -80,14 +82,15 @@ export class BasementSDK {
   public async tokens(
     params?: TokensQueryOptions
   ): Promise<TokensQuery["tokens"]> {
-    const { after, filter, include, limit } = params || {};
+    const { before, after, filter, include, limit } = params || {};
     const includeTotalCount = include?.totalCount;
     const data = await this.sdk.tokens({
+      before,
       filter,
       after,
       includeTotalCount,
       limit,
-      ...parseTokenIncludeOptions(include),
+      ...parseTokenOpts(include),
     });
     return data.tokens;
   }
@@ -104,7 +107,7 @@ export class BasementSDK {
     let tokensIncludeOptions = {};
     if (typeof include?.tokens !== "boolean" && includeTokens) {
       tokensLimit = include.tokens.limit;
-      tokensIncludeOptions = parseTokenIncludeOptions(include.tokens);
+      tokensIncludeOptions = parseTokenOpts(include.tokens);
     }
     const includeProfile = include?.profile;
     const includeReverseProfile = include?.reverseProfile;
@@ -129,7 +132,7 @@ export class BasementSDK {
   }: TransactionQueryOptions): Promise<TransactionQuery["transaction"]> {
     const { transaction } = await this.sdk.transaction({
       hash,
-      ...parseTransactionIncludeOptions(include),
+      ...parseTransactionOpts(include),
     });
     return transaction;
   }
@@ -138,15 +141,16 @@ export class BasementSDK {
    * Query transactions that satisfy the given filter(s)
    */
   public async transactions(params?: TransactionsQueryOptions) {
-    const { after, filter, include, limit, reversed } = params || {};
+    const { before, after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const { transactions } = await this.sdk.transactions({
+      before,
       limit,
       reversed,
       filter: filter as any,
       after,
       includeTotalCount,
-      ...parseTransactionIncludeOptions(include),
+      ...parseTransactionOpts(include),
     });
     return transactions;
   }
@@ -155,15 +159,16 @@ export class BasementSDK {
    * Query transaction logs that satisfy the given filter(s)
    */
   public async transactionLogs(params?: TransactionLogsQueryOptions) {
-    const { after, filter, include, limit, reversed } = params || {};
+    const { before, after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const includeContractReverseProfile = !!include?.address;
     const includeTransaction = !!include.transaction;
     let transactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
-      transactionOpts = parseTransactionIncludeOptions(include.transaction);
+      transactionOpts = parseTransactionOpts(include.transaction);
     }
     const { transactionLogs } = await this.sdk.transactionLogs({
+      before,
       after,
       filter: filter as any,
       limit,
@@ -192,10 +197,10 @@ export class BasementSDK {
   }
 
   /**
-   * Query ERC721 Transfers that satisfy the given filter(s)
+   * Query ERC721 transfers that satisfy the given filter(s)
    */
   public async erc721Transfers(params?: Erc721TransfersQueryOptions) {
-    const { include, after, filter, limit } = params || {};
+    const { include, before, after, filter, limit } = params || {};
     const includeTransferContract = !!include?.contract;
     const includeTotalCount = include?.totalCount;
     const includeToken = !!include?.token;
@@ -207,7 +212,7 @@ export class BasementSDK {
     let parsedTokenOpts = {};
 
     if (typeof include?.token !== "boolean" && includeToken) {
-      parsedTokenOpts = parseTokenIncludeOptions(include.token);
+      parsedTokenOpts = parseTokenOpts(include.token);
     }
 
     const includeSale = !!include?.sale;
@@ -216,30 +221,24 @@ export class BasementSDK {
       includeErc721TransferSaleTaker,
       includeErc721TransferSaleMakerReverseProfile,
       includeErc721TransferSaleTakerReverseProfile,
-    } = parseSaleIncludeOptions(include.sale, "erc721TransferSale");
+    } = parseSaleOpts(include.sale, "erc721TransferSale");
 
     const includeTokenSales = isPropertyIncluded(include.token, "sales");
 
     const includeTransaction = !!include?.transaction;
 
-    const parsedTransactionOpts = parseTransactionIncludeOptions(
-      include?.transaction
-    );
+    const parsedTransactionOpts = parseTransactionOpts(include?.transaction);
 
-    const includeTransferSender = !!include?.from;
-    const includeTransferSenderReverseProfile = isPropertyIncluded(
-      include?.from,
-      "reverseProfile"
-    );
-    const includeTransferRecipient = !!include?.to;
-    const includeTransferRecipientReverseProfile = isPropertyIncluded(
-      include?.to,
-      "reverseProfile"
-    );
+    const parsedTransferAndRecipientOpts = parseTransferSenderRecipientOpts({
+      from: include?.from,
+      to: include?.to,
+    });
 
     const { erc721Transfers } = await this.sdk.erc721Transfers({
       ...parsedTransactionOpts,
       ...parsedTokenOpts,
+      ...parsedTransferAndRecipientOpts,
+      before,
       after,
       filter: filter as any,
       limit,
@@ -252,14 +251,40 @@ export class BasementSDK {
       includeToken,
       includeTokenSales,
       includeTransaction,
-      includeTransferRecipient,
-      includeTransferSender,
       includeTransferContract,
       includeTransferContractReverseProfile,
-      includeTransferRecipientReverseProfile,
-      includeTransferSenderReverseProfile,
     });
 
     return erc721Transfers;
+  }
+
+  /**
+   * Query ERC20 transfers that satisfy the given filter(s)
+   */
+  public async erc20Transfers(params?: Erc20TransfersQueryOptions) {
+    const { after, before, filter, include, limit } = params || {};
+
+    const includeTotalCount = include?.totalCount;
+    const includeTransaction = !!include?.transaction;
+
+    const parsedTransactionOpts = parseTransactionOpts(include?.transaction);
+
+    const parsedTransferAndRecipientOpts = parseTransferSenderRecipientOpts({
+      from: include?.from,
+      to: include?.to,
+    });
+
+    const { erc20Transfers } = await this.sdk.erc20Transfers({
+      ...parsedTransactionOpts,
+      ...parsedTransferAndRecipientOpts,
+      includeTotalCount,
+      includeTransaction,
+      before,
+      after,
+      filter: filter as any,
+      limit,
+    });
+
+    return erc20Transfers;
   }
 }
