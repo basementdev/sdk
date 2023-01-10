@@ -3,6 +3,7 @@ import {
   TransactionLogsQueryVariables,
   TransactionsQueryVariables,
   Erc721TransfersQueryVariables,
+  Erc20TransfersQueryVariables,
 } from "./sdk";
 
 // https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist
@@ -14,9 +15,11 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
-export type PluralQueryOptions<K, T> = {
+export type PageQueryOptions<K, T> = {
   /** Filter option(s) */
   filter?: K;
+  /** Cursor used for pagination. To go to the previous page, provide the value returned from the cursor (if available) */
+  before?: string;
   /** Cursor used for pagination. To go to the next page, provide the value returned from the cursor (if available) */
   after?: string;
   limit?: number;
@@ -101,7 +104,7 @@ export type TokenQueryOptions = TokenVariables & {
 };
 
 export type TokensQueryOptions = Omit<
-  PluralQueryOptions<TokensFilter, TokenQueryIncludeOptions>,
+  PageQueryOptions<TokensFilter, TokenQueryIncludeOptions>,
   "reversed"
 >;
 
@@ -123,7 +126,7 @@ export type TransactionQueryOptions = {
 };
 
 export type TransactionsQueryOptions = RequireAtLeastOne<
-  PluralQueryOptions<
+  PageQueryOptions<
     TransactionsQueryVariables["filter"],
     Partial<TransactionQueryIncludeOptions>
   >
@@ -136,7 +139,7 @@ export type TransactionLogsQueryIncludeOptions = {
   transaction?: Omit<TransactionQueryIncludeOptions, "logs"> | boolean;
 };
 
-export type TransactionLogsQueryOptions = PluralQueryOptions<
+export type TransactionLogsQueryOptions = PageQueryOptions<
   Partial<TransactionLogsQueryVariables["filter"]>,
   TransactionLogsQueryIncludeOptions
 >;
@@ -157,9 +160,28 @@ export type Erc721TransfersQueryIncludeOptions = {
 };
 
 export type Erc721TransfersQueryOptions = Omit<
-  PluralQueryOptions<
+  PageQueryOptions<
     Partial<Erc721TransfersQueryVariables["filter"]>,
     Erc721TransfersQueryIncludeOptions
+  >,
+  "reversed"
+>;
+
+export type Erc20TransfersQueryIncludeOptions = {
+  /** Whether to include the address containing this token's contract code */
+  contract?: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the transaction in which this transfer occurred */
+  transaction?: TransactionQueryIncludeOptions | boolean;
+  /** Whether to include the address sending this token, when this contains the "null address" this token was minted during this transfer  */
+  from?: IncludeOnlyReverseProfile | boolean;
+  /** Whether to include the address receiving this token, when this contains the "null address" this token was burned during this transfer */
+  to?: IncludeOnlyReverseProfile | boolean;
+};
+
+export type Erc20TransfersQueryOptions = Omit<
+  PageQueryOptions<
+    Partial<Erc20TransfersQueryVariables["filter"]>,
+    Erc20TransfersQueryIncludeOptions
   >,
   "reversed"
 >;

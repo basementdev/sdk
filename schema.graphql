@@ -219,11 +219,48 @@ type Erc721TransferPage {
   totalCount: Int!
 }
 
+"A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721."
+type Erc20Transfer implements TransactionEvent {
+  "Hash signature of the transaction in which this transfer did occur"
+  transactionHash: String!
+
+  "Position of the log within a block in which this transfer was logged"
+  logIndex: Int!
+
+  "Block Number in which this transaction was included"
+  blockNumber: Int!
+
+  "Address containing this token's contract code"
+  contractAddress: HexAddress!
+
+  "Address sending this token, when this contains the \"null address\" this token was minted during this transfer"
+  from: Address!
+
+  "Address receiving this token, when this contains the \"null address\" this token was burned during this transfer"
+  to: Address
+
+  "Transaction in which this transfer occurred"
+  transaction: Transaction!
+}
+
 "The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics"
 scalar LogTopic
 
 type Query {
   address(address: String!): Address
+
+  erc20Transfers(
+    filter: Erc20TransfersFilter
+
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
+
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
+
+    "The number of items to return in one page"
+    limit: Int
+  ): Erc20TransferPage!
 
   erc721Transfers(
     filter: TransfersFilter
@@ -348,6 +385,9 @@ input TransactionLogFilter {
 enum Marketplace {
   "Trade made through a wyvern or seaport contract"
   OPENSEA
+
+  "Trade made through the Blur marketplace"
+  BLUR
 }
 
 type TransactionLog {
@@ -374,6 +414,23 @@ type TransactionLog {
 
   "The transaction during which this log was emitted"
   transaction: Transaction!
+}
+
+input Erc20TransfersFilter {
+  "A list of addresses who received the NFT. Ignored when empty."
+  fromAddresses: [EnsAddress]
+
+  "A list of addresses who received the NFT."
+  toAddresses: [EnsAddress]
+
+  "A list of block numbers to include transfers from"
+  blockNumbers: [Int!]
+
+  "A contract to include transfers from."
+  contractAddresses: [String]
+
+  "Categories to exclude transfers from"
+  exclude: [ExcludeTransferFilter!]
 }
 
 input TransactionFilter {
@@ -513,11 +570,22 @@ type TokensPage {
   totalCount: Int!
 }
 
+type Erc20TransferPage {
+  "List of transfers within this page, use the `after` cursor to fetch more tokens"
+  erc20Transfers: [Erc20Transfer!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
+}
+
 enum ExcludeTransferFilter {
-  "Transfers without an associated sale or where the value of the transaction is zero."
+  "Transfers without an associated sale or where the value of the transaction is zero. We may include transactions where there is no indexed sale if it's coming from a trusted contract."
   ZERO_ETH_TRANSFER
 
-  "Mints where the initiatior of the transaction does not match the recipient of the token."
+  "Mints where the initiatior of the transaction does not match the recipient of the token. We may include transactions that were executed through a trusted contract, such as a marketplace."
   AIRDROP
 }
 
