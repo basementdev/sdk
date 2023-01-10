@@ -209,7 +209,6 @@ describe("Basement SDK", () => {
     const data = await sdk.erc20Transfers({
       include: {
         totalCount: true,
-        contract: true,
         from: { reverseProfile: true },
         to: { reverseProfile: true },
         transaction: { logs: true, from: true, to: true, events: false },
