@@ -168,8 +168,6 @@ export type Erc721TransfersQueryOptions = Omit<
 >;
 
 export type Erc20TransfersQueryIncludeOptions = {
-  /** Whether to include the address containing this token's contract code */
-  contract?: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the transaction in which this transfer occurred */
   transaction?: TransactionQueryIncludeOptions | boolean;
   /** Whether to include the address sending this token, when this contains the "null address" this token was minted during this transfer  */
