@@ -49,12 +49,12 @@ query token(
   $includeTokenAttributes: Boolean = false
   $includeTokenMint: Boolean = false
   $includeTokenMedia: Boolean = false
-  $includeTransactionLogs: Boolean = false
   $includeTokenSales: Boolean = false
   $includeTokenSalesMaker: Boolean = false
   $includeTokenSalesTaker: Boolean = false
   $includeTokenSalesMakerReverseProfile: Boolean = false
   $includeTokenSalesTakerReverseProfile: Boolean = false
+  $includeTransactionLogs: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionEvents: Boolean = false
@@ -75,6 +75,7 @@ query token(
 query tokens(
   $filter: TokensFilter
   $limit: Int = 50
+  $before: Cursor
   $after: Cursor
   $includeTotalCount: Boolean = false
   $includeOwner: Boolean = false
@@ -94,8 +95,9 @@ query tokens(
   $includeTokenSalesMakerReverseProfile: Boolean = false
   $includeTokenSalesTakerReverseProfile: Boolean = false
 ) {
-  tokens(filter: $filter, limit: $limit, after: $after) {
+  tokens(filter: $filter, limit: $limit, before: $before, after: $after) {
     cursors {
+      before
       after
     }
     totalCount @include(if: $includeTotalCount)
@@ -127,6 +129,7 @@ query transaction(
 
 query transactions(
   $filter: TransactionFilter
+  $before: Cursor
   $after: Cursor
   $limit: Int = 50
   $reversed: Boolean = false
@@ -138,11 +141,13 @@ query transactions(
 ) {
   transactions(
     filter: $filter
+    before: $before
     after: $after
     limit: $limit
     reversed: $reversed
   ) {
     cursors {
+      before
       after
     }
     totalCount @include(if: $includeTotalCount)
@@ -153,6 +158,7 @@ query transactions(
 }
 
 query transactionLogs(
+  $before: Cursor
   $after: Cursor
   $includeTotalCount: Boolean = false
   $filter: TransactionLogFilter
@@ -166,12 +172,14 @@ query transactionLogs(
   $includeTransaction: Boolean = false
 ) {
   transactionLogs(
+    before: $before
     after: $after
     limit: $limit
     filter: $filter
     reversed: $reversed
   ) {
     cursors {
+      before
       after
     }
     totalCount @include(if: $includeTotalCount)
@@ -197,6 +205,7 @@ query transactionLogs(
 
 query erc721Transfers(
   $filter: TransfersFilter
+  $before: Cursor
   $after: Cursor
   $limit: Int = 50
   $includeTotalCount: Boolean = false
@@ -227,8 +236,14 @@ query erc721Transfers(
   $includeTransferRecipient: Boolean = false
   $includeTransferRecipientReverseProfile: Boolean = false
 ) {
-  erc721Transfers(filter: $filter, after: $after, limit: $limit) {
+  erc721Transfers(
+    before: $before
+    after: $after
+    limit: $limit
+    filter: $filter
+  ) {
     cursors {
+      before
       after
     }
     totalCount @include(if: $includeTotalCount)
@@ -269,6 +284,57 @@ query erc721Transfers(
         sales @include(if: $includeTokenSales) {
           ...NonFungibleTokenSalesInfo
         }
+      }
+    }
+  }
+}
+
+query erc20Transfers(
+  $before: Cursor
+  $after: Cursor
+  $limit: Int = 50
+  $filter: Erc20TransfersFilter
+  $includeTotalCount: Boolean = false
+  $includeTransferSender: Boolean = false
+  $includeTransferSenderReverseProfile: Boolean = false
+  $includeTransferRecipient: Boolean = false
+  $includeTransferRecipientReverseProfile: Boolean = false
+  $includeTransactionRecipient: Boolean = false
+  $includeTransaction: Boolean = false
+  $includeTransactionSender: Boolean = false
+  $includeTransactionEvents: Boolean = false
+  $includeTransactionLogs: Boolean = false
+) {
+  erc20Transfers(
+    before: $before
+    after: $after
+    filter: $filter
+    limit: $limit
+  ) {
+    totalCount @include(if: $includeTotalCount)
+    cursors {
+      before
+      after
+    }
+    erc20Transfers {
+      blockNumber
+      contractAddress
+      from @include(if: $includeTransferSender) {
+        address
+        reverseProfile @include(if: $includeTransferSenderReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+
+      to @include(if: $includeTransferRecipient) {
+        address
+        reverseProfile @include(if: $includeTransferRecipientReverseProfile) {
+          ...GlobalKeys
+        }
+      }
+      logIndex
+      transaction @include(if: $includeTransaction) {
+        ...TransactionInfo
       }
     }
   }

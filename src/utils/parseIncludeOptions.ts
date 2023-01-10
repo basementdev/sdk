@@ -1,5 +1,6 @@
 import { Erc721TransfersQueryVariables, TokenQueryVariables } from "../sdk";
 import {
+  IncludeOnlyReverseProfile,
   SalesFilterOptions,
   TokenQueryIncludeOptions,
   TransactionQueryIncludeOptions,
@@ -7,8 +8,12 @@ import {
 import isPropertyIncluded from "./isPropertyIncluded";
 
 type QueryType = "tokenSales" | "erc721TransferSale";
+type SenderAndRecipientOpts = {
+  from: boolean | IncludeOnlyReverseProfile;
+  to: boolean | IncludeOnlyReverseProfile;
+};
 
-export function parseTransactionIncludeOptions(
+export function parseTransactionOpts(
   opts?: Partial<TransactionQueryIncludeOptions> | boolean
 ) {
   if (typeof opts === "boolean") return {};
@@ -24,7 +29,7 @@ export function parseTransactionIncludeOptions(
   };
 }
 
-export function parseSaleIncludeOptions<T extends QueryType>(
+export function parseSaleOpts<T extends QueryType>(
   opts?: Partial<SalesFilterOptions> | boolean,
   queryType?: T
 ): T extends "tokenSales"
@@ -65,22 +70,20 @@ export function parseSaleIncludeOptions<T extends QueryType>(
   } as Partial<Erc721TransfersQueryVariables>;
 }
 
-export function parseTokenIncludeOptions(
+export function parseTokenOpts(
   opts?: Partial<TokenQueryIncludeOptions>
 ): Partial<TokenQueryVariables> {
   const includeOwner = !!opts.owner;
   const includeTokenMint = !!opts.mintTransaction;
 
-  const mintTranasctionOpts = parseTransactionIncludeOptions(
-    opts.mintTransaction
-  );
+  const mintTranasctionOpts = parseTransactionOpts(opts.mintTransaction);
 
   const {
     includeTokenSalesMaker,
     includeTokenSalesMakerReverseProfile,
     includeTokenSalesTaker,
     includeTokenSalesTakerReverseProfile,
-  } = parseSaleIncludeOptions(opts.sales, "tokenSales");
+  } = parseSaleOpts(opts.sales, "tokenSales");
 
   const includeTokenAttributes = opts.attributes;
   const includeTokenSales = !!opts.sales;
@@ -106,5 +109,32 @@ export function parseTokenIncludeOptions(
     includeOwnerProfile,
     includeOwnerReverseProfile,
     includeTokenAttributes,
+  };
+}
+
+export function parseTransferSenderRecipientOpts(
+  opts: SenderAndRecipientOpts
+): {
+  includeTransferSender: boolean;
+  includeTransferSenderReverseProfile: boolean;
+  includeTransferRecipient: boolean;
+  includeTransferRecipientReverseProfile: boolean;
+} {
+  const { from, to } = opts;
+  const includeTransferSender = !!from;
+  const includeTransferSenderReverseProfile = isPropertyIncluded(
+    from,
+    "reverseProfile"
+  );
+  const includeTransferRecipient = !!to;
+  const includeTransferRecipientReverseProfile = isPropertyIncluded(
+    to,
+    "reverseProfile"
+  );
+  return {
+    includeTransferSender,
+    includeTransferRecipient,
+    includeTransferRecipientReverseProfile,
+    includeTransferSenderReverseProfile,
   };
 }
