@@ -1,22 +1,23 @@
+import { DocumentNode } from "graphql";
 import { GraphQLClient } from "graphql-request";
 import {
   AddressQuery,
-  getSdk,
   NonFungibleTokenRefreshMutationVariables,
   SdkFunctionWrapper,
   TokenQuery,
   TokensQuery,
   TransactionQuery,
+  getSdk,
 } from "./sdk";
 import {
   AddressQueryOptions,
+  Erc20TransfersQueryOptions,
+  Erc721TransfersQueryOptions,
   TokenQueryOptions,
   TokensQueryOptions,
   TransactionLogsQueryOptions,
   TransactionQueryOptions,
   TransactionsQueryOptions,
-  Erc721TransfersQueryOptions,
-  Erc20TransfersQueryOptions,
 } from "./types";
 import isPropertyIncluded from "./utils/isPropertyIncluded";
 import {
@@ -36,13 +37,19 @@ type SDKOptions = {
 export class BasementSDK {
   private apiKey?: string;
 
+  private client: GraphQLClient;
+
+  private opts: SDKOptions;
+
   private sdk: ReturnType<typeof getSdk>;
 
   constructor(opts?: SDKOptions) {
     const { apiKey, endpoint = DEFAULT_ENDPOINT } = opts || {};
-    const client = new GraphQLClient(endpoint);
+    this.opts = opts;
+    this.client = new GraphQLClient(endpoint);
+    this.opts = opts;
     this.apiKey = apiKey;
-    this.sdk = getSdk(client, this.withWrapper);
+    this.sdk = getSdk(this.client, this.withWrapper);
   }
 
   private withWrapper: SdkFunctionWrapper = async <T>(
@@ -286,5 +293,13 @@ export class BasementSDK {
     });
 
     return erc20Transfers;
+  }
+
+  public async request(query: DocumentNode, variables?: Record<string, any>) {
+    return this.withWrapper(
+      (wrappedRequestHeaders) =>
+        this.client.request(query, variables, wrappedRequestHeaders),
+      "custom"
+    );
   }
 }
