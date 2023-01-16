@@ -1,3 +1,4 @@
+import gql from "graphql-tag";
 import { BasementSDK } from "../src";
 import { ExcludeTransferFilter } from "../src/sdk";
 
@@ -223,5 +224,34 @@ describe("Basement SDK", () => {
     expect(erc20Transfer.from?.address).toBeDefined();
     expect(erc20Transfer.to?.reverseProfile).toBeDefined();
     expect(erc20Transfer.to?.reverseProfile).toBeDefined();
+  });
+
+  test("custom query request", async () => {
+    const data = await sdk.request(
+      gql`
+        query address($address: String!) {
+          address(address: $address) {
+            address
+          }
+        }
+      `,
+      { address: "vitalik.eth" }
+    );
+    expect(data.address).toBeDefined();
+  });
+
+  test("custom mutation request", async () => {
+    const data = await sdk.request(
+      gql`
+        mutation nonFungibleTokenRefresh(
+          $contract: String!
+          $tokenId: String!
+        ) {
+          nonFungibleTokenRefresh(contract: $contract, tokenId: $tokenId)
+        }
+      `,
+      { contract: TOKEN_CONTRACT_ADDRESS, tokenId: TOKEN_ID }
+    );
+    expect(data.nonFungibleTokenRefresh).toBeDefined();
   });
 });
