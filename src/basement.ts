@@ -113,8 +113,8 @@ export class BasementSDK {
     let tokensLimit = 10;
     let tokensIncludeOptions = {};
     if (typeof include?.tokens !== "boolean" && includeTokens) {
-      tokensLimit = include.tokens.limit;
-      tokensIncludeOptions = parseTokenOpts(include.tokens);
+      tokensLimit = include?.tokens.limit;
+      tokensIncludeOptions = parseTokenOpts(include?.tokens);
     }
     const includeProfile = include?.profile;
     const includeReverseProfile = include?.reverseProfile;
@@ -169,10 +169,10 @@ export class BasementSDK {
     const { before, after, filter, include, limit, reversed } = params || {};
     const includeTotalCount = include?.totalCount;
     const includeContractReverseProfile = !!include?.address;
-    const includeTransaction = !!include.transaction;
+    const includeTransaction = !!include?.transaction;
     let transactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
-      transactionOpts = parseTransactionOpts(include.transaction);
+      transactionOpts = parseTransactionOpts(include?.transaction);
     }
     const { transactionLogs } = await this.sdk.transactionLogs({
       before,
@@ -219,7 +219,7 @@ export class BasementSDK {
     let parsedTokenOpts = {};
 
     if (typeof include?.token !== "boolean" && includeToken) {
-      parsedTokenOpts = parseTokenOpts(include.token);
+      parsedTokenOpts = parseTokenOpts(include?.token);
     }
 
     const includeSale = !!include?.sale;
@@ -228,9 +228,9 @@ export class BasementSDK {
       includeErc721TransferSaleTaker,
       includeErc721TransferSaleMakerReverseProfile,
       includeErc721TransferSaleTakerReverseProfile,
-    } = parseSaleOpts(include.sale, "erc721TransferSale");
+    } = parseSaleOpts(include?.sale, "erc721TransferSale");
 
-    const includeTokenSales = isPropertyIncluded(include.token, "sales");
+    const includeTokenSales = isPropertyIncluded(include?.token, "sales");
 
     const includeTransaction = !!include?.transaction;
 
