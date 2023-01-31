@@ -133,6 +133,8 @@ export type TransactionsQueryOptions = RequireAtLeastOne<
 >;
 
 export type TransactionLogsQueryIncludeOptions = {
+  /** Whether to include the block hash */
+  blockHash?: boolean;
   /** Whether to include the address of the contract which emitted this log */
   address?: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the transaction during which this log was emitted */
@@ -145,6 +147,8 @@ export type TransactionLogsQueryOptions = PageQueryOptions<
 >;
 
 export type Erc721TransfersQueryIncludeOptions = {
+  /** Whether to include the block hash */
+  blockHash?: boolean;
   /** Whether to include the address containing this token's contract code */
   contract?: IncludeOnlyReverseProfile | boolean;
   /** Whether to include the transaction in which this transfer occurred */

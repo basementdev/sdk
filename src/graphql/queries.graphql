@@ -164,6 +164,7 @@ query transactionLogs(
   $filter: TransactionLogFilter
   $limit: Int = 50
   $reversed: Boolean = false
+  $includeBlockHash: Boolean = false
   $includeTransactionRecipient: Boolean = false
   $includeTransactionSender: Boolean = false
   $includeTransactionLogs: Boolean = false
@@ -184,6 +185,7 @@ query transactionLogs(
     }
     totalCount @include(if: $includeTotalCount)
     transactionLogs {
+      blockHash @include(if: $includeBlockHash)
       address {
         address
         reverseProfile @include(if: $includeContractReverseProfile) {
@@ -209,6 +211,7 @@ query erc721Transfers(
   $after: Cursor
   $limit: Int = 50
   $includeTotalCount: Boolean = false
+  $includeBlockHash: Boolean = false
   $includeTokenSalesMaker: Boolean = false
   $includeTokenSalesTaker: Boolean = false
   $includeTokenSalesMakerReverseProfile: Boolean = false
@@ -249,6 +252,7 @@ query erc721Transfers(
     totalCount @include(if: $includeTotalCount)
     erc721Transfers {
       blockNumber
+      blockHash @include(if: $includeBlockHash)
       contract @include(if: $includeTransferContract) {
         address
         reverseProfile @include(if: $includeTransferContractReverseProfile) {

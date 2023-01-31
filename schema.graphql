@@ -19,7 +19,7 @@ scalar HexAddress
 scalar EnsAddress
 
 "A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721."
-type Erc721Transfer implements TransactionEvent {
+type Erc721Transfer implements Transfer & TransactionEvent {
   "Hash signature of the transaction in which this transfer did occur"
   transactionHash: String!
 
@@ -37,6 +37,9 @@ type Erc721Transfer implements TransactionEvent {
 
   "Block Number in which this transaction was included"
   blockNumber: Int!
+
+  "Block hash in which this transaction was included"
+  blockHash: String
 
   "Address containing this token's contract code"
   contract: Address!
@@ -163,6 +166,9 @@ input TransfersFilter {
   "A lower bound on the block range to include erc721 transfers from. Cannot be used in combination with `blockNumbers`."
   fromBlock: Int
 
+  "A list of block hashes to include erc721 transfers from. Cannot be used in combination with `blockNumbers` or `fromBlock\/toBlock`"
+  blockHashes: [String!]
+
   "A contract to include transfers from."
   contractAddresses: [String]
 
@@ -171,6 +177,13 @@ input TransfersFilter {
 
   "Categories to exclude transfers from"
   exclude: [ExcludeTransferFilter!]
+}
+
+type Erc20Contract implements Contract {
+  address: HexAddress!
+  name: String
+  symbol: String
+  decimals: Int
 }
 
 "Address on the blockchain, contains info about tokens and ENS profiles"
@@ -220,7 +233,7 @@ type Erc721TransferPage {
 }
 
 "A transfer of an ERC721 non fungible token from one token to another, as defined in EIP721."
-type Erc20Transfer implements TransactionEvent {
+type Erc20Transfer implements Transfer & TransactionEvent {
   "Hash signature of the transaction in which this transfer did occur"
   transactionHash: String!
 
@@ -233,6 +246,8 @@ type Erc20Transfer implements TransactionEvent {
   "Address containing this token's contract code"
   contractAddress: HexAddress!
 
+  contract: Contract
+
   "Address sending this token, when this contains the \"null address\" this token was minted during this transfer"
   from: Address!
 
@@ -241,6 +256,12 @@ type Erc20Transfer implements TransactionEvent {
 
   "Transaction in which this transfer occurred"
   transaction: Transaction!
+}
+
+type Erc20Balance {
+  amount: Wei!
+  owner: Address!
+  contract: Address!
 }
 
 "The LogTopic scalar type converts addresses and written signatures to their hex equivalents used in log topics"
@@ -261,6 +282,8 @@ type Query {
     "The number of items to return in one page"
     limit: Int
   ): Erc20TransferPage!
+
+  erc20Balances(filter: Erc20BalancesFilter!): [Erc20Balance!]!
 
   erc721Transfers(
     filter: TransfersFilter
@@ -289,6 +312,19 @@ type Query {
     "The number of items to return in one page"
     limit: Int
   ): TokensPage!
+
+  transfers(
+    filter: TransfersInterfaceFilter
+
+    "Returns the elements in the list that come after the specified cursor."
+    after: Cursor
+
+    "Returns the elements in the list that come before the specified cursor."
+    before: Cursor
+
+    "The number of items to return in one page"
+    limit: Int
+  ): TransferPage
 
   "Query a transaction"
   transaction(hash: String!): Transaction
@@ -356,13 +392,13 @@ input TransactionLogFilter {
   - Hex encoded: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
   - Address: "0xC02AAA39B223FE8D0A0E5C4F27EAD9083C756CC2"
   - ENS address: "gotu.eth"
-  - Signature: "Tranfer(address,address,uint256)"
+  - Signature: "Transfer(address,address,uint256)"
 
   ## Filtering
   Topics filter is a list of lists, similar to eth_getLogs. When a second, third or fourth topic has been specified, the first topic must be specified for performance reasons.
   - `[[]]`: Any topic in the first position
-  - `[["Tranfer(address,address,uint256)"], [], []]`: Must match the first topic, any topic in the second and third position, these cannot be null.`
-  - `[["Tranfer(address,address,uint256)"], [], ["gotu.eth", "vitalik.eth"]]`: Must match the first topic, any topic in the second position, must match any of the addresses in the third position.`
+  - `[["Transfer(address,address,uint256)"], [], []]`: Must match the first topic, any topic in the second and third position, these cannot be null.`
+  - `[["Transfer(address,address,uint256)"], [], ["gotu.eth", "vitalik.eth"]]`: Must match the first topic, any topic in the second position, must match any of the addresses in the third position.`
   """
   topics: [[LogTopic!]!]
 
@@ -380,6 +416,9 @@ input TransactionLogFilter {
 
   "Filter on the transactions in which a log was emitted."
   transaction: TransactionLogTransactionFilter
+
+  "A list of block hashes to include transaction logs from. Cannot be used in combination with `blockNumbers` or `fromBlock\/toBlock`"
+  blockHashes: [String!]
 }
 
 enum Marketplace {
@@ -388,9 +427,15 @@ enum Marketplace {
 
   "Trade made through the Blur marketplace"
   BLUR
+
+  "Trade made through the Looksrare marketplace"
+  LOOKSRARE
 }
 
 type TransactionLog {
+  "Block hash in which this log was included"
+  blockHash: String
+
   "Block number in which this log was included"
   blockNumber: Int!
 
@@ -414,6 +459,8 @@ type TransactionLog {
 
   "The transaction during which this log was emitted"
   transaction: Transaction!
+
+  parsedData(abi: String!): Json
 }
 
 input Erc20TransfersFilter {
@@ -433,6 +480,21 @@ input Erc20TransfersFilter {
   exclude: [ExcludeTransferFilter!]
 }
 
+interface Transfer {
+  to: Address
+
+  from: Address!
+
+  "Hash signature of the transaction in which this transfer did occur"
+  transactionHash: String!
+
+  "Position of the log within a block in which this transfer was logged"
+  logIndex: Int
+
+  "Block Number in which this transaction was included"
+  blockNumber: Int!
+}
+
 input TransactionFilter {
   "A list of addresses who initiated transactions. Ignored when empty."
   fromAddresses: [EnsAddress!]
@@ -445,6 +507,17 @@ input TransactionFilter {
 
   "A list of methodIds as specified in the first 4 bytes of calldata. Note: this field is not verified to be a valid call. Addresses may send transactions with arbitrary data."
   methodIds: [String!]
+}
+
+type TransferPage {
+  "List of transfers within this page, use the `after` cursor to fetch more tokens"
+  transfers: [Transfer!]!
+
+  "Cursors for use in Pagination"
+  cursors: Cursors!
+
+  "Total amount of items within the given filters. Capped at 10000 for performance reasons."
+  totalCount: Int!
 }
 
 "Cursor used in pagination"
@@ -496,6 +569,11 @@ type Profile {
     "Key to return a text record for. For common keys, see: https:\/\/docs.ens.domains\/ens-improvement-proposals\/ensip-5-text-records#global-keys"
     key: String!
   ): String
+}
+
+input Erc20BalancesFilter {
+  "Owner address"
+  ownerAddress: EnsAddress!
 }
 
 "Metadata of a token as defined in one of the non-fungible token EIPs"
@@ -553,6 +631,17 @@ interface NonFungibleToken {
 interface TransactionEvent {
   "Hash signature of the transaction in which this sale occurred"
   transactionHash: String!
+}
+
+input TransfersInterfaceFilter {
+  "A list of addresses who received the asset. Ignored when empty."
+  fromAddresses: [EnsAddress]
+
+  "A list of addresses who received the NFT."
+  toAddresses: [EnsAddress]
+
+  "A list of block numbers to include transfers from"
+  blockNumbers: [Int!]
 }
 
 type Mutation {
@@ -644,4 +733,10 @@ type Transaction {
 
   "Logs emitted while executing this transaction"
   logs: [TransactionLog!]!
+
+  parsedInput(abi: String!): Json
+}
+
+interface Contract {
+  address: HexAddress!
 }

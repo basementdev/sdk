@@ -153,6 +153,7 @@ describe("Basement SDK", () => {
   test("transasctionLogs query", async () => {
     const data = await sdk.transactionLogs({
       include: {
+        blockHash: true,
         address: true,
         totalCount: true,
         transaction: { from: true, to: true, events: false },
@@ -160,6 +161,7 @@ describe("Basement SDK", () => {
     });
     expect(data?.totalCount).toBeDefined();
     const txLogs = data?.transactionLogs[0];
+    expect(txLogs?.blockHash).toBeDefined();
     expect(txLogs?.address).toBeDefined();
     expect(txLogs?.transaction).toBeDefined();
     const txLogsTransactionKeys = Object.keys(txLogs?.transaction);
@@ -178,6 +180,7 @@ describe("Basement SDK", () => {
       },
       include: {
         totalCount: true,
+        blockHash: true,
         contract: true,
         from: true,
         to: true,
@@ -196,6 +199,7 @@ describe("Basement SDK", () => {
     const erc721Transfer = data.erc721Transfers[0];
 
     expect(data.totalCount).toBeDefined();
+    expect(erc721Transfer.blockHash).toBeDefined();
     expect(erc721Transfer.contract?.address).toBeDefined();
     expect(erc721Transfer.from?.address).toBeDefined();
     expect(erc721Transfer.to?.address).toBeDefined();
