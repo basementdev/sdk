@@ -230,6 +230,20 @@ describe("Basement SDK", () => {
     expect(erc20Transfer.to?.reverseProfile).toBeDefined();
   });
 
+  test("erc20Balances query", async () => {
+    const data = await sdk.erc20Balances({
+      filter: { ownerAddress: "vitalik.eth" },
+      include: { owner: { profile: true, reverseProfile: true } },
+    });
+
+    const balanceData = data[0];
+    expect(balanceData.amount).toBeDefined();
+    expect(balanceData.contract.address).toBeDefined();
+    expect(balanceData.owner?.address).toBeDefined();
+    expect(balanceData.owner?.profile).toBeDefined();
+    expect(balanceData.owner?.reverseProfile).toBeDefined();
+  });
+
   test("custom query request", async () => {
     const data = await sdk.request(
       gql`

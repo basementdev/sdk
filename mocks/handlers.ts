@@ -24,6 +24,7 @@ const queries: Operation[] = [
   { type: "query", name: "transactionLogs" },
   { type: "query", name: "erc721Transfers" },
   { type: "query", name: "erc20Transfers" },
+  { type: "query", name: "erc20Balances" },
   { type: "mutation", name: "nonFungibleTokenRefresh" },
 ];
 

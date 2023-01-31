@@ -4,6 +4,7 @@ import {
   TransactionsQueryVariables,
   Erc721TransfersQueryVariables,
   Erc20TransfersQueryVariables,
+  Erc20BalancesFilter,
 } from "./sdk";
 
 // https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist
@@ -180,6 +181,10 @@ export type Erc20TransfersQueryIncludeOptions = {
   to?: IncludeOnlyReverseProfile | boolean;
 };
 
+export type Erc20BalancesQueryIncludeOptions = {
+  owner?: IncludeFullProfileOptions | boolean;
+};
+
 export type Erc20TransfersQueryOptions = Omit<
   PageQueryOptions<
     Partial<Erc20TransfersQueryVariables["filter"]>,
@@ -187,3 +192,9 @@ export type Erc20TransfersQueryOptions = Omit<
   >,
   "reversed"
 >;
+
+export type Erc20BalancesQueryOptions = {
+  /** Includes more data in the response */
+  include?: Erc20BalancesQueryIncludeOptions;
+  filter: Erc20BalancesFilter;
+};

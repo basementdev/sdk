@@ -11,6 +11,7 @@ import {
 } from "./sdk";
 import {
   AddressQueryOptions,
+  Erc20BalancesQueryOptions,
   Erc20TransfersQueryOptions,
   Erc721TransfersQueryOptions,
   TokenQueryOptions,
@@ -21,6 +22,7 @@ import {
 } from "./types";
 import isPropertyIncluded from "./utils/isPropertyIncluded";
 import {
+  parseOwnerOpts,
   parseSaleOpts,
   parseTokenOpts,
   parseTransactionOpts,
@@ -297,6 +299,21 @@ export class BasementSDK {
     });
 
     return erc20Transfers;
+  }
+
+  /**
+   * Query ERC20 balances from a given address
+   */
+  public async erc20Balances({ filter, include }: Erc20BalancesQueryOptions) {
+    const includeOwner = !!include?.owner;
+    const parsedOwnerOpts = parseOwnerOpts(include?.owner);
+    const { erc20Balances } = await this.sdk.erc20Balances({
+      ...parsedOwnerOpts,
+      includeOwner,
+      filter,
+    });
+
+    return erc20Balances;
   }
 
   public async request(query: DocumentNode, variables?: Record<string, any>) {
