@@ -1,5 +1,6 @@
 import { Erc721TransfersQueryVariables, TokenQueryVariables } from "../sdk";
 import {
+  IncludeFullProfileOptions,
   IncludeOnlyReverseProfile,
   SalesFilterOptions,
   TokenQueryIncludeOptions,
@@ -12,6 +13,8 @@ type SenderAndRecipientOpts = {
   from: boolean | IncludeOnlyReverseProfile;
   to: boolean | IncludeOnlyReverseProfile;
 };
+
+type AddressOpts = IncludeFullProfileOptions | boolean;
 
 export function parseTransactionOpts(
   opts?: Partial<TransactionQueryIncludeOptions> | boolean
@@ -136,5 +139,18 @@ export function parseTransferSenderRecipientOpts(
     includeTransferRecipient,
     includeTransferRecipientReverseProfile,
     includeTransferSenderReverseProfile,
+  };
+}
+
+export function parseOwnerOpts(opts: AddressOpts) {
+  if (typeof opts === "boolean") {
+    return {};
+  }
+  const includeOwnerProfile = opts?.profile;
+  const includeOwnerReverseProfile = opts?.reverseProfile;
+
+  return {
+    includeOwnerProfile,
+    includeOwnerReverseProfile,
   };
 }
