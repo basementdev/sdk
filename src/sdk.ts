@@ -730,19 +730,24 @@ export const NonFungibleErc721TransferSaleInfoFragmentDoc = gql`
 }
     ${NonFungibleTokenSaleInfoBaseFragmentDoc}
 ${GlobalKeysFragmentDoc}`;
-export const NonFungibleTokenOwnerInfoFragmentDoc = gql`
-    fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
-  owner {
-    address
-    profile @include(if: $includeOwnerProfile) {
-      ...GlobalKeys
-    }
-    reverseProfile @include(if: $includeOwnerReverseProfile) {
-      ...GlobalKeys
-    }
+export const OwnerInfoFragmentDoc = gql`
+    fragment OwnerInfo on Address {
+  address
+  profile @include(if: $includeOwnerProfile) {
+    ...GlobalKeys
+  }
+  reverseProfile @include(if: $includeOwnerReverseProfile) {
+    ...GlobalKeys
   }
 }
     ${GlobalKeysFragmentDoc}`;
+export const NonFungibleTokenOwnerInfoFragmentDoc = gql`
+    fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
+  owner {
+    ...OwnerInfo
+  }
+}
+    ${OwnerInfoFragmentDoc}`;
 export const MediaInfoFragmentDoc = gql`
     fragment MediaInfo on Media {
   blurhash
@@ -1020,6 +1025,19 @@ export const Erc20TransfersDocument = gql`
 }
     ${GlobalKeysFragmentDoc}
 ${TransactionInfoFragmentDoc}`;
+export const Erc20BalancesDocument = gql`
+    query erc20Balances($filter: Erc20BalancesFilter!, $includeOwner: Boolean = false, $includeOwnerProfile: Boolean = false, $includeOwnerReverseProfile: Boolean = false) {
+  erc20Balances(filter: $filter) {
+    amount
+    contract {
+      address
+    }
+    owner @include(if: $includeOwner) {
+      ...OwnerInfo
+    }
+  }
+}
+    ${OwnerInfoFragmentDoc}`;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
@@ -1054,6 +1072,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     erc20Transfers(variables?: Erc20TransfersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Erc20TransfersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<Erc20TransfersQuery>(Erc20TransfersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'erc20Transfers', 'query');
+    },
+    erc20Balances(variables: Erc20BalancesQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Erc20BalancesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Erc20BalancesQuery>(Erc20BalancesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'erc20Balances', 'query');
     }
   };
 }
@@ -1245,6 +1266,16 @@ export type Erc20TransfersQueryVariables = Exact<{
 
 export type Erc20TransfersQuery = { erc20Transfers: { totalCount?: number, cursors: { before: string | null, after: string | null }, erc20Transfers: Array<{ blockNumber: number, contractAddress: any, logIndex: number, from?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null }, to?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null } | null, transaction?: { blockNumber: number, blockTimestamp: any, effectiveGasPrice: any, gas: number, gasPaid: any, gasUsed: number, gasPrice: any, hash: string, id: string, index: number, input: string | null, value: any, methodId: string | null, status: boolean, events?: Array<{ transactionHash: string } | { transactionHash: string } | { transactionHash: string }>, from?: { address: any, reverseProfile: { name: string, avatar: string | null } | null }, to?: { address: any, reverseProfile: { name: string, avatar: string | null } | null } | null, logs?: Array<{ data: string, logIndex: number, removed: boolean, topics: Array<string> }> } }> } };
 
+export type Erc20BalancesQueryVariables = Exact<{
+  filter: Erc20BalancesFilter;
+  includeOwner?: InputMaybe<Scalars['Boolean']>;
+  includeOwnerProfile?: InputMaybe<Scalars['Boolean']>;
+  includeOwnerReverseProfile?: InputMaybe<Scalars['Boolean']>;
+}>;
+
+
+export type Erc20BalancesQuery = { erc20Balances: Array<{ amount: any, contract: { address: any }, owner?: { address: any, profile?: { name: string, avatar: string | null } | null, reverseProfile?: { name: string, avatar: string | null } | null } }> };
+
 export type NonFungibleTokenMintInfoFragment = { mintPrice: any, mintTransaction: { blockNumber: number, blockTimestamp: any, effectiveGasPrice: any, gas: number, gasPaid: any, gasUsed: number, gasPrice: any, hash: string, id: string, index: number, input: string | null, value: any, methodId: string | null, status: boolean, events?: Array<{ transactionHash: string } | { transactionHash: string } | { transactionHash: string }>, from?: { address: any, reverseProfile: { name: string, avatar: string | null } | null }, to?: { address: any, reverseProfile: { name: string, avatar: string | null } | null } | null, logs?: Array<{ data: string, logIndex: number, removed: boolean, topics: Array<string> }> } | null };
 
 export type TransactionInfoFragment = { blockNumber: number, blockTimestamp: any, effectiveGasPrice: any, gas: number, gasPaid: any, gasUsed: number, gasPrice: any, hash: string, id: string, index: number, input: string | null, value: any, methodId: string | null, status: boolean, events?: Array<{ transactionHash: string } | { transactionHash: string } | { transactionHash: string }>, from?: { address: any, reverseProfile: { name: string, avatar: string | null } | null }, to?: { address: any, reverseProfile: { name: string, avatar: string | null } | null } | null, logs?: Array<{ data: string, logIndex: number, removed: boolean, topics: Array<string> }> };
@@ -1254,6 +1285,8 @@ export type NonFungibleTokenSaleInfoBaseFragment = { eventIndex: number, logInde
 export type NonFungibleTokenSalesInfoFragment = { eventIndex: number, logIndex: number, marketplace: Marketplace, price: any, maker?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null }, taker?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null }, currencyContract: { address: any } | null, marketplaceContract: { address: any } };
 
 export type NonFungibleErc721TransferSaleInfoFragment = { eventIndex: number, logIndex: number, marketplace: Marketplace, price: any, maker?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null }, taker?: { address: any, reverseProfile?: { name: string, avatar: string | null } | null }, currencyContract: { address: any } | null, marketplaceContract: { address: any } };
+
+export type OwnerInfoFragment = { address: any, profile?: { name: string, avatar: string | null } | null, reverseProfile?: { name: string, avatar: string | null } | null };
 
 export type NonFungibleTokenOwnerInfoFragment = { owner: { address: any, profile?: { name: string, avatar: string | null } | null, reverseProfile?: { name: string, avatar: string | null } | null } | null };
 

@@ -344,6 +344,23 @@ query erc20Transfers(
   }
 }
 
+query erc20Balances(
+  $filter: Erc20BalancesFilter!
+  $includeOwner: Boolean = false
+  $includeOwnerProfile: Boolean = false
+  $includeOwnerReverseProfile: Boolean = false
+) {
+  erc20Balances(filter: $filter) {
+    amount
+    contract {
+      address
+    }
+    owner @include(if: $includeOwner) {
+      ...OwnerInfo
+    }
+  }
+}
+
 fragment NonFungibleTokenMintInfo on NonFungibleToken {
   mintPrice
   mintTransaction {
@@ -437,15 +454,19 @@ fragment NonFungibleErc721TransferSaleInfo on NonFungibleTokenSale {
   }
 }
 
+fragment OwnerInfo on Address {
+  address
+  profile @include(if: $includeOwnerProfile) {
+    ...GlobalKeys
+  }
+  reverseProfile @include(if: $includeOwnerReverseProfile) {
+    ...GlobalKeys
+  }
+}
+
 fragment NonFungibleTokenOwnerInfo on NonFungibleToken {
   owner {
-    address
-    profile @include(if: $includeOwnerProfile) {
-      ...GlobalKeys
-    }
-    reverseProfile @include(if: $includeOwnerReverseProfile) {
-      ...GlobalKeys
-    }
+    ...OwnerInfo
   }
 }
 
