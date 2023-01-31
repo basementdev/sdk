@@ -170,6 +170,7 @@ export class BasementSDK {
     const includeTotalCount = include?.totalCount;
     const includeContractReverseProfile = !!include?.address;
     const includeTransaction = !!include?.transaction;
+    const includeBlockHash = include?.blockHash;
     let transactionOpts = {};
     if (typeof include?.transaction !== "boolean") {
       transactionOpts = parseTransactionOpts(include?.transaction);
@@ -181,6 +182,7 @@ export class BasementSDK {
       limit,
       reversed,
       includeTotalCount,
+      includeBlockHash,
       includeContractReverseProfile,
       includeTransaction,
       ...transactionOpts,
@@ -211,6 +213,7 @@ export class BasementSDK {
     const includeTransferContract = !!include?.contract;
     const includeTotalCount = include?.totalCount;
     const includeToken = !!include?.token;
+    const includeBlockHash = include?.blockHash;
     const includeTransferContractReverseProfile = isPropertyIncluded(
       include?.contract,
       "reverseProfile"
@@ -250,6 +253,7 @@ export class BasementSDK {
       filter: filter as any,
       limit,
       includeSale,
+      includeBlockHash,
       includeErc721TransferSaleMaker,
       includeErc721TransferSaleTaker,
       includeErc721TransferSaleMakerReverseProfile,
